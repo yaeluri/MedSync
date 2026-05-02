@@ -1,3 +1,4 @@
+import React from 'react';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 
 type RecordingStatus = 'idle' | 'recording' | 'processing' | 'done';
@@ -60,8 +61,18 @@ const TranscriptPanel = ({ status, transcript }: { status: RecordingStatus; tran
   );
 };
 
+const SummaryPanel = ({ status, summary }: { status: RecordingStatus; summary: string }) => {
+  if (status !== 'done' || !summary) return null;
+  return (
+    <div style={styles.card}>
+      <h2 style={styles.subtitle}>Summary</h2>
+      <p style={styles.transcript}>{summary}</p>
+    </div>
+  );
+};
+
 const VisitPage = () => {
-  const { status, transcript, timer, start, stop, cancel } = useAudioRecorder();
+  const { status, transcript, summary, timer, start, stop, cancel } = useAudioRecorder();
 
   return (
     <div style={styles.container}>
@@ -71,6 +82,7 @@ const VisitPage = () => {
         <RecordingControls status={status as RecordingStatus} handlers={{ start, stop, cancel }} />
       </div>
       <TranscriptPanel status={status as RecordingStatus} transcript={transcript} />
+      <SummaryPanel status={status as RecordingStatus} summary={summary} />
     </div>
   );
 };

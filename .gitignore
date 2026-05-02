@@ -30,3 +30,8 @@ coverage/
 
 # TypeScript
 *.tsbuildinfo
+
+# Kiro
+.kiro/
+*.kiro
+*.ms

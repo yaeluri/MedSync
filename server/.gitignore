@@ -48,6 +48,9 @@ test-results/
 # NestJS
 *.seed
 *.pid
+
+# Credentials
+src/gen-lang-client-*.json
 *.pid.lock
 
 # Temp files
