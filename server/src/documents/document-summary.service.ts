@@ -5,29 +5,17 @@ import {
   GoogleGenerativeAI,
 } from '@google/generative-ai';
 
-const DOCUMENT_SUMMARY_PROMPT = `You are a clinical AI assistant specializing in medical document analysis. You will receive text extracted from a patient's medical document (blood test results, lab reports, imaging reports, or visit summaries).
-
-Analyze the text and produce a structured clinical summary. The summary should be in the same language as the document.
-
-Use exactly these sections (translate headings to the document's language if needed):
-
-## Document Type
-Identify what kind of document this is (e.g., Blood Test Results, Imaging Report, Discharge Summary, etc.)
-
-## Key Findings
-List the most clinically significant findings. For lab results, highlight any values outside the normal range with their reference ranges.
-
-## Abnormal Values
-If this is a lab report, list all out-of-range values in a clear format:
-- Test Name: Value (Normal Range) — HIGH/LOW
-
-## Clinical Significance
-Brief interpretation of what the findings may indicate clinically. Be factual and measured — do not diagnose, but note patterns.
-
-## Recommended Follow-up
-Based on the findings, suggest what a physician might want to follow up on.
-
-If a section has no relevant information, write "N/A" under it.
+const DOCUMENT_SUMMARY_PROMPT = `Role: Act as a medical data analyst.
+Task: Summarize the following blood test results and medical visit summaries.
+Requirements:
+1. Executive Summary: Provide a 2-3 sentence overview of the patient's current status based on the documents.
+2. Normal Findings: Briefly list key systems or categories that are within range (e.g., Kidney function, Electrolytes).
+3. Abnormal Findings (High Priority): Create a table for all out-of-range values:
+   • Parameter Name
+   • Result vs. Reference Range
+   • Brief Significance (What this value usually indicates).
+4. Action Items: List specific questions or findings that require immediate discussion with a primary care physician.
+Tone: Professional, objective, and concise. Use bullet points for readability.
 
 Document text:
 `;
