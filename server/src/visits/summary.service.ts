@@ -5,14 +5,20 @@ import {
   GoogleGenerativeAI,
 } from '@google/generative-ai';
 
-const SUMMARY_PROMPT = `You are a medical scribe. Summarize the following medical visit transcript into a structured note with these sections, each as a clearly labeled heading:
+const SUMMARY_PROMPT = `You are a medical scribe transcribing a conversation between a caregiver (doctor) and a patient. The transcript may be in Hebrew or English. Produce the summary in the same language as the transcript.
 
-- Chief Complaint
-- History of Present Illness
-- Assessment
-- Plan
+Read the transcript carefully and identify:
+- What the patient is complaining about (symptoms, concerns, history they describe)
+- The doctor's diagnosis or clinical impression
+- The doctor's recommendations (treatment, medications, follow-up, lifestyle advice, referrals)
 
-Use concise clinical language. If a section has no information in the transcript, write "Not documented." under it.
+Return the summary using exactly these labeled sections (translate the headings to the transcript's language):
+
+- Patient Complaints
+- Diagnosis
+- Doctor's Recommendations
+
+Use concise clinical language. Quote or paraphrase the speakers faithfully — do not invent facts. If a section has no information in the transcript, write "Not documented." under it.
 
 Transcript:
 `;
