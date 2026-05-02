@@ -1,5 +1,10 @@
 import { NavLink, Outlet } from 'react-router-dom';
 
+const NAV_LINKS = [
+  { to: '/documents', label: 'Documents' },
+  { to: '/visit',     label: 'Visit Recording' },
+];
+
 const navStyle = ({ isActive }) => ({
   marginRight: '1.5rem',
   fontWeight: isActive ? 'bold' : 'normal',
@@ -7,16 +12,17 @@ const navStyle = ({ isActive }) => ({
   color: isActive ? '#007bff' : '#333',
 });
 
-export default function MainLayout() {
-  return (
-    <div>
-      <nav style={{ padding: '1rem 2rem', borderBottom: '1px solid #ddd', background: '#fff' }}>
-        <NavLink to="/documents" style={navStyle}>Documents</NavLink>
-        <NavLink to="/visit" style={navStyle}>Visit Recording</NavLink>
-      </nav>
-      <main style={{ padding: '1rem' }}>
-        <Outlet />
-      </main>
-    </div>
-  );
-}
+const MainLayout = () => (
+  <div>
+    <nav style={{ padding: '1rem 2rem', borderBottom: '1px solid #ddd', background: '#fff' }}>
+      {NAV_LINKS.map(({ to, label }) => (
+        <NavLink key={to} to={to} style={navStyle}>{label}</NavLink>
+      ))}
+    </nav>
+    <main style={{ padding: '1rem' }}>
+      <Outlet />
+    </main>
+  </div>
+);
+
+export default MainLayout;
