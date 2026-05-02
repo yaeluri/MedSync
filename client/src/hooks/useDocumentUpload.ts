@@ -1,14 +1,16 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, ChangeEvent } from 'react';
 import { uploadDocument } from '../api/documents';
 
-export function useDocumentUpload() {
-  const [file, setFile] = useState(null);
-  const [status, setStatus] = useState('idle'); // idle | uploading | done | error
-  const [summary, setSummary] = useState('');
-  const fileInputRef = useRef(null);
+type UploadStatus = 'idle' | 'uploading' | 'done' | 'error';
 
-  const selectFile = (e) => {
-    const selected = e.target.files[0];
+export function useDocumentUpload() {
+  const [file, setFile] = useState<File | null>(null);
+  const [status, setStatus] = useState<UploadStatus>('idle');
+  const [summary, setSummary] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const selectFile = (e: ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
     if (selected) {
       setFile(selected);
       setStatus('idle');

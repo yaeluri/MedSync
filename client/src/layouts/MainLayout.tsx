@@ -1,11 +1,16 @@
 import { NavLink, Outlet } from 'react-router-dom';
 
-const NAV_LINKS = [
+interface NavItem {
+  to: string;
+  label: string;
+}
+
+const NAV_LINKS: NavItem[] = [
   { to: '/documents', label: 'Documents' },
   { to: '/visit',     label: 'Visit Recording' },
 ];
 
-const navStyle = ({ isActive }) => ({
+const navStyle = ({ isActive }: { isActive: boolean }) => ({
   marginRight: '1.5rem',
   fontWeight: isActive ? 'bold' : 'normal',
   textDecoration: 'none',
