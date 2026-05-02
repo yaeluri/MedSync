@@ -1,7 +1,0 @@
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
-
-export async function apiRequest(path, options = {}) {
-  const res = await fetch(`${BASE_URL}${path}`, options);
-  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-  return res.json();
-}

@@ -1,6 +1,6 @@
 import { apiRequest } from './client';
 
-export function uploadDocument(file) {
+export function uploadDocument(file: File) {
   const formData = new FormData();
   formData.append('document', file);
 

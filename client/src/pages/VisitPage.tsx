@@ -1,23 +1,31 @@
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 
-const formatTime = (s) =>
+type RecordingStatus = 'idle' | 'recording' | 'processing' | 'done';
+
+const formatTime = (s: number): string =>
   `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
-const STATUS_LABELS = {
+const STATUS_LABELS: Record<RecordingStatus, string | ((timer: number) => string)> = {
   idle:       'Ready to record',
-  recording:  (timer) => `Recording... ${formatTime(timer)}`,
+  recording:  (timer: number) => `Recording... ${formatTime(timer)}`,
   processing: 'Processing transcript...',
   done:       'Transcript ready',
 };
 
-const BUTTONS = {
+interface ButtonConfig {
+  label: string;
+  action: string;
+  style: string;
+}
+
+const BUTTONS: Partial<Record<RecordingStatus, ButtonConfig[]>> = {
   idle:      [{ label: 'Start Recording', action: 'start', style: 'btnPrimary' }],
   recording: [{ label: 'Stop',        action: 'stop',   style: 'btnDanger' },
               { label: 'Cancel',      action: 'cancel', style: 'btnSecondary' }],
   done:      [{ label: 'Record Again', action: 'cancel', style: 'btnSecondary' }],
 };
 
-const RecordingStatus = ({ status, timer }) => {
+const RecordingStatusDisplay = ({ status, timer }: { status: RecordingStatus; timer: number }) => {
   const label = typeof STATUS_LABELS[status] === 'function'
     ? STATUS_LABELS[status](timer)
     : STATUS_LABELS[status];
@@ -30,17 +38,17 @@ const RecordingStatus = ({ status, timer }) => {
   );
 };
 
-const RecordingControls = ({ status, handlers }) => (
+const RecordingControls = ({ status, handlers }: { status: RecordingStatus; handlers: Record<string, () => void> }) => (
   <div style={styles.buttonRow}>
     {(BUTTONS[status] || []).map(({ label, action, style }) => (
-      <button key={action} style={styles[style]} onClick={handlers[action]}>
+      <button key={action} style={styles[style as keyof typeof styles] as React.CSSProperties} onClick={handlers[action]}>
         {label}
       </button>
     ))}
   </div>
 );
 
-const TranscriptPanel = ({ status, transcript }) => {
+const TranscriptPanel = ({ status, transcript }: { status: RecordingStatus; transcript: string }) => {
   if (status !== 'processing' && status !== 'done') return null;
   return (
     <div style={styles.card}>
@@ -59,10 +67,10 @@ const VisitPage = () => {
     <div style={styles.container}>
       <h1 style={styles.title}>Visit Recording</h1>
       <div style={styles.card}>
-        <RecordingStatus status={status} timer={timer} />
-        <RecordingControls status={status} handlers={{ start, stop, cancel }} />
+        <RecordingStatusDisplay status={status as RecordingStatus} timer={timer} />
+        <RecordingControls status={status as RecordingStatus} handlers={{ start, stop, cancel }} />
       </div>
-      <TranscriptPanel status={status} transcript={transcript} />
+      <TranscriptPanel status={status as RecordingStatus} transcript={transcript} />
     </div>
   );
 };
