@@ -1,9 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  GenerativeModel,
-  GoogleGenerativeAI,
-} from '@google/generative-ai';
+import { GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai';
 
 const DOCUMENT_SUMMARY_PROMPT = `Role: Act as a medical data analyst.
 Task: Summarize the following blood test results and medical visit summaries.
