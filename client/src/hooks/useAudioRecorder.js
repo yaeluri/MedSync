@@ -4,6 +4,7 @@ import { transcribeAudio } from '../api/visits';
 export function useAudioRecorder() {
   const [status, setStatus] = useState('idle'); // idle | recording | processing | done
   const [transcript, setTranscript] = useState('');
+  const [summary, setSummary] = useState('');
   const [timer, setTimer] = useState(0);
 
   const mediaRecorderRef = useRef(null);
@@ -38,6 +39,7 @@ export function useAudioRecorder() {
     setStatus('idle');
     setTimer(0);
     setTranscript('');
+    setSummary('');
   };
 
   const handleStop = async () => {
@@ -45,11 +47,13 @@ export function useAudioRecorder() {
     try {
       const data = await transcribeAudio(blob);
       setTranscript(data.transcript || '');
+      setSummary(data.summary || '');
     } catch {
       setTranscript('Transcription failed. Please try again.');
+      setSummary('');
     }
     setStatus('done');
   };
 
-  return { status, transcript, timer, start, stop, cancel };
+  return { status, transcript, summary, timer, start, stop, cancel };
 }

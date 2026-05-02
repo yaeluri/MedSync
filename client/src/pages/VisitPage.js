@@ -52,8 +52,18 @@ const TranscriptPanel = ({ status, transcript }) => {
   );
 };
 
+const SummaryPanel = ({ status, summary }) => {
+  if (status !== 'done' || !summary) return null;
+  return (
+    <div style={styles.card}>
+      <h2 style={styles.subtitle}>Summary</h2>
+      <p style={styles.transcript}>{summary}</p>
+    </div>
+  );
+};
+
 const VisitPage = () => {
-  const { status, transcript, timer, start, stop, cancel } = useAudioRecorder();
+  const { status, transcript, summary, timer, start, stop, cancel } = useAudioRecorder();
 
   return (
     <div style={styles.container}>
@@ -63,6 +73,7 @@ const VisitPage = () => {
         <RecordingControls status={status} handlers={{ start, stop, cancel }} />
       </div>
       <TranscriptPanel status={status} transcript={transcript} />
+      <SummaryPanel status={status} summary={summary} />
     </div>
   );
 };
