@@ -33,9 +33,8 @@ export class SpeechService implements OnModuleInit {
         config: {
           encoding: 'WEBM_OPUS',
           sampleRateHertz: 48000,
-          languageCode: 'en-US',
+          languageCode: 'he-IL',
           enableAutomaticPunctuation: true,
-          model: 'latest_long',
         },
       });
 
