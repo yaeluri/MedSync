@@ -33,7 +33,7 @@ export default function DocumentsPage() {
       </div>
 
       {(status === 'done' || status === 'error') && (
-        <div style={{ ...styles.card, borderColor: status === 'error' ? '#dc3545' : '#ddd' }}>
+        <div style={{ ...styles.card, borderColor: status === 'error' ? '#dc3545' : '#ddd', direction: 'rtl', textAlign: 'right' }}>
           <h2 style={styles.subtitle}>AI Summary</h2>
           <p style={styles.summary}>{summary}</p>
         </div>
