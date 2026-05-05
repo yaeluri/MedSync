@@ -13,6 +13,7 @@ Requirements:
    • Brief Significance (What this value usually indicates).
 4. Action Items: List specific questions or findings that require immediate discussion with a primary care physician.
 Tone: Professional, objective, and concise. Use bullet points for readability.
+IMPORTANT: Write the entire summary in Hebrew.
 
 Document text:
 `;

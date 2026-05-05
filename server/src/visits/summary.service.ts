@@ -1,9 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  GenerativeModel,
-  GoogleGenerativeAI,
-} from '@google/generative-ai';
+import { GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai';
 
 const SUMMARY_PROMPT = `You are a medical scribe transcribing a conversation between a caregiver (doctor) and a patient. The transcript may be in Hebrew or English. Produce the summary in the same language as the transcript.
 
