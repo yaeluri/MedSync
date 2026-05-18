@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import MainLayout from './layouts/MainLayout';
 import AuthLayout from './layouts/AuthLayout';
+import AppLayout from './layouts/AppLayout';
 
 const VisitPage = lazy(() => import('./pages/VisitPage'));
 const DocumentsPage = lazy(() => import('./pages/DocumentsPage'));
@@ -17,7 +17,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
           </Route>
-          <Route element={<MainLayout />}>
+          <Route element={<AppLayout />}>
             <Route path="/visit" element={<VisitPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
           </Route>
@@ -29,4 +29,6 @@ function App() {
 }
 
 export default App;
+
+
 
