@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from './auth.module.css';
 
 type Role = 'patient' | 'doctor';
 
 export default function LoginPage() {
   const [role, setRole] = useState<Role>('patient');
+  const navigate = useNavigate();
 
   return (
     <div className={styles.container}>
@@ -28,7 +29,7 @@ export default function LoginPage() {
       <h2 className={styles.heading}>Welcome Back</h2>
       <p className={styles.subheading}>Sign in to your account to continue.</p>
 
-      <form className={styles.form} onSubmit={e => e.preventDefault()}>
+      <form className={styles.form} onSubmit={e => { e.preventDefault(); localStorage.setItem('role', role); navigate(role === 'patient' ? '/dashboard' : '/visit'); }}>
         {/* Email */}
         <div className={styles.inputWrapper}>
           <svg className={styles.inputIcon} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
