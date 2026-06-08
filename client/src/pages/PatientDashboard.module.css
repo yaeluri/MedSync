@@ -7,6 +7,225 @@
   background: #f8f9fa;
 }
 
+/* ── Toast ─────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  z-index: 200;
+  white-space: nowrap;
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.toastSuccess {
+  background: #2f9e44;
+  color: #fff;
+}
+
+.toastError {
+  background: #e03131;
+  color: #fff;
+}
+
+/* ── Uploading bar ─────────────────────────────────────── */
+.uploadingBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #dde3ff;
+  z-index: 300;
+}
+
+.uploadingBarFill {
+  height: 100%;
+  width: 40%;
+  background: #3b5bdb;
+  border-radius: 2px;
+  animation: indeterminate 1.2s ease-in-out infinite;
+}
+
+@keyframes indeterminate {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
+/* ── Upload Modal ──────────────────────────────────────── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  background: #fff;
+  border-radius: 20px;
+  padding: 2rem 2rem 1.75rem;
+  width: 420px;
+  max-width: calc(100vw - 2rem);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.modalClose {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #868e96;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.modalClose:hover {
+  color: #1a1a2e;
+  background: #f1f3f5;
+}
+
+.modalIcon {
+  width: 64px;
+  height: 64px;
+  background: #eef2ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.modalTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.modalSub {
+  font-size: 14px;
+  color: #868e96;
+  margin: 0 0 0.75rem;
+}
+
+.modalBtnPrimary {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 2px dashed #3b5bdb;
+  background: #f0f4ff;
+  color: #3b5bdb;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.modalBtnPrimary:hover {
+  background: #e8edff;
+}
+
+.modalBtnSecondary {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1.5px solid #e9ecef;
+  background: #fff;
+  color: #1a1a2e;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.modalBtnSecondary:hover {
+  background: #f8f9fa;
+}
+
+.cameraPreview {
+  width: 100%;
+  max-height: 300px;
+  border-radius: 12px;
+  background: #000;
+  object-fit: cover;
+  margin: 0.5rem 0;
+}
+
+.cameraError {
+  color: #e03131;
+  font-size: 14px;
+  text-align: center;
+  margin: 0.5rem 0 1rem;
+}
+
+.cameraActions {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.cameraActions .modalBtnSecondary {
+  flex: 1;
+}
+
+.captureBtn {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: none;
+  background: #3b5bdb;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.captureBtn:hover {
+  background: #3451c7;
+}
+
 /* ── Header ────────────────────────────────────────────── */
 .header {
   display: flex;
