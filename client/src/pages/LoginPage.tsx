@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import styles from './auth.module.css';
+import { Box, Typography, TextField, Button, ToggleButtonGroup, ToggleButton } from '@mui/material';
+import EmailIcon from '@mui/icons-material/Email';
+import LockIcon from '@mui/icons-material/Lock';
+import InputAdornment from '@mui/material/InputAdornment';
 
 type Role = 'patient' | 'doctor';
 
@@ -8,59 +11,45 @@ export default function LoginPage() {
   const [role, setRole] = useState<Role>('patient');
   const navigate = useNavigate();
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem('role', role);
+    navigate(role === 'patient' ? '/dashboard' : '/visit');
+  };
+
   return (
-    <div className={styles.container}>
-      {/* Role Tabs */}
-      <div className={styles.tabs}>
-        <button
-          className={`${styles.tab} ${role === 'patient' ? styles.tabActive : ''}`}
-          onClick={() => setRole('patient')}
-        >
-          Patient
-        </button>
-        <button
-          className={`${styles.tab} ${role === 'doctor' ? styles.tabActive : ''}`}
-          onClick={() => setRole('doctor')}
-        >
-          Doctor
-        </button>
-      </div>
+    <Box sx={{ width: '100%', maxWidth: 420, p: 4 }}>
+      <ToggleButtonGroup
+        value={role} exclusive size="small"
+        onChange={(_, v) => v && setRole(v)}
+        sx={{ mb: 3, background: '#f1f3f5', borderRadius: '12px', p: '4px', border: 'none' }}
+      >
+        <ToggleButton value="patient" sx={{ border: 'none', borderRadius: '9px !important', px: 2.5, fontWeight: 500 }}>Patient</ToggleButton>
+        <ToggleButton value="doctor"  sx={{ border: 'none', borderRadius: '9px !important', px: 2.5, fontWeight: 500 }}>Doctor</ToggleButton>
+      </ToggleButtonGroup>
 
-      <h2 className={styles.heading}>Welcome Back</h2>
-      <p className={styles.subheading}>Sign in to your account to continue.</p>
+      <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a2e', mb: 0.5 }}>Welcome Back</Typography>
+      <Typography sx={{ fontSize: 14, color: 'text.secondary', mb: 2.5 }}>Sign in to your account to continue.</Typography>
 
-      <form className={styles.form} onSubmit={e => { e.preventDefault(); localStorage.setItem('role', role); navigate(role === 'patient' ? '/dashboard' : '/visit'); }}>
-        {/* Email */}
-        <div className={styles.inputWrapper}>
-          <svg className={styles.inputIcon} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="4" width="20" height="16" rx="2"/>
-            <polyline points="2,4 12,13 22,4"/>
-          </svg>
-          <input className={styles.input} type="email" placeholder="Email Address" autoComplete="email" />
-        </div>
+      <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <TextField
+          type="email" placeholder="Email Address" autoComplete="email"
+          InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon sx={{ color: '#adb5bd', fontSize: 18 }} /></InputAdornment> }}
+        />
+        <TextField
+          type="password" placeholder="Password" autoComplete="current-password"
+          InputProps={{ startAdornment: <InputAdornment position="start"><LockIcon sx={{ color: '#adb5bd', fontSize: 18 }} /></InputAdornment> }}
+        />
+        <Box sx={{ textAlign: 'right' }}>
+          <Typography component="a" href="#" sx={{ fontSize: 13, color: 'primary.main', fontWeight: 500, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>Forgot password?</Typography>
+        </Box>
+        <Button type="submit" variant="contained" size="large" fullWidth sx={{ mt: 0.5, py: 1.4, fontSize: 16 }}>Sign In</Button>
+      </Box>
 
-        {/* Password */}
-        <div className={styles.inputWrapper}>
-          <svg className={styles.inputIcon} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-          <input className={styles.input} type="password" placeholder="Password" autoComplete="current-password" />
-        </div>
-
-        <div className={styles.forgotWrapper}>
-          <a href="#" className={styles.forgotLink}>Forgot password?</a>
-        </div>
-
-        <button type="submit" className={styles.submitBtn}>
-          Sign In
-        </button>
-      </form>
-
-      <p className={styles.footer}>
+      <Typography sx={{ textAlign: 'center', mt: 2, fontSize: 14, color: 'text.secondary' }}>
         Don't have an account?{' '}
-        <Link to="/register" className={styles.link}>Sign Up</Link>
-      </p>
-    </div>
+        <Typography component={Link} to="/register" sx={{ color: 'primary.main', fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>Sign Up</Typography>
+      </Typography>
+    </Box>
   );
 }
