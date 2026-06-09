@@ -8,6 +8,8 @@ const DocumentsPage = lazy(() => import('./pages/DocumentsPage'));
 const PatientDashboard = lazy(() => import('./pages/PatientDashboard'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const PatientsListPage = lazy(() => import('./pages/PatientsListPage'));
+const PatientDashboardPage = lazy(() => import('./pages/PatientDashboardPage'));
 
 function App() {
   return (
@@ -22,6 +24,10 @@ function App() {
             <Route path="/dashboard" element={<PatientDashboard />} />
             <Route path="/visit" element={<VisitPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
+            <Route path="/patients" element={<PatientsListPage />} />
+            <Route path="/patients/:id" element={<PatientDashboardPage />} />
+            <Route path="/patients/:id/visit" element={<VisitPage />} />
+            <Route path="/patients/:id/documents" element={<DocumentsPage />} />
           </Route>
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>

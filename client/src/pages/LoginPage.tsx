@@ -5,7 +5,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import InputAdornment from '@mui/material/InputAdornment';
 
-type Role = 'patient' | 'doctor';
+type Role = "patient" | "doctor";
 
 export default function LoginPage() {
   const [role, setRole] = useState<Role>('patient');
@@ -14,7 +14,7 @@ export default function LoginPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     localStorage.setItem('role', role);
-    navigate(role === 'patient' ? '/dashboard' : '/visit');
+    navigate(role === 'patient' ? '/dashboard' : '/patients');
   };
 
   return (
@@ -34,11 +34,11 @@ export default function LoginPage() {
       <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         <TextField
           type="email" placeholder="Email Address" autoComplete="email"
-          InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon sx={{ color: '#adb5bd', fontSize: 18 }} /></InputAdornment> }}
+          // InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon sx={{ color: '#adb5bd', fontSize: 18 }} /></InputAdornment> }}
         />
         <TextField
           type="password" placeholder="Password" autoComplete="current-password"
-          InputProps={{ startAdornment: <InputAdornment position="start"><LockIcon sx={{ color: '#adb5bd', fontSize: 18 }} /></InputAdornment> }}
+          // InputProps={{ startAdornment: <InputAdornment position="start"><LockIcon sx={{ color: '#adb5bd', fontSize: 18 }} /></InputAdornment> }}
         />
         <Box sx={{ textAlign: 'right' }}>
           <Typography component="a" href="#" sx={{ fontSize: 13, color: 'primary.main', fontWeight: 500, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>Forgot password?</Typography>

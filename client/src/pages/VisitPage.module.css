@@ -272,10 +272,17 @@
   margin-bottom: 4px;
 }
 
+.insightUpdating {
+  font-weight: 500;
+  color: #3b5bdb;
+  font-size: 11px;
+}
+
 .insightText {
   font-size: 13px;
   color: #495057;
-  line-height: 1.55;
+  line-height: 1.5;
+  white-space: pre-wrap;
 }
 
 .recordBar {
@@ -304,4 +311,57 @@
 .recordBtnActive {
   background: #e03131;
 }
-.recordBtnActive:hover { background: #c92a2a; }
+
+/* ── Transcription loader ──────────────────────────────── */
+.fieldWrap {
+  position: relative;
+}
+
+.transcribingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: rgba(248, 249, 250, 0.85);
+  border: 1.5px solid #e9ecef;
+  border-radius: 10px;
+  color: #495057;
+  font-size: 13px;
+  font-weight: 600;
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #dee2e6;
+  border-top-color: #3b5bdb;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.spinnerSm {
+  width: 12px;
+  height: 12px;
+  border-width: 2px;
+}
+
+.transcribingBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 11px;
+  font-weight: 600;
+  color: #3b5bdb;
+  background: #eef2ff;
+  border-radius: 5px;
+  padding: 2px 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
