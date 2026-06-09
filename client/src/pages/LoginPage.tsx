@@ -10,7 +10,12 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/patients");
+    if (role === "patient") {
+      // In a real app, you'd verify credentials and fetch user data here.
+    }
+    if (role === "doctor") {
+      navigate("/patients");
+    }
   };
 
   return (
