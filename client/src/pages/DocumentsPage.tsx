@@ -37,7 +37,6 @@ export default function DocumentsPage() {
 
   return (
     <div className={styles.main}>
-      {/* ── Header ── */}
       <header className={styles.header}>
         <div className={styles.headerLeft}>
           {id && (
@@ -67,13 +66,10 @@ export default function DocumentsPage() {
         </div>
       </header>
 
-      {/* ── Body ── */}
       <div className={styles.body}>
-        {/* Left column */}
         <div className={styles.leftColumn}>
           <div className={styles.sectionTitle}>Upload Document</div>
 
-          {/* Drop zone */}
           <div
             className={styles.dropZone}
             onClick={() => fileInputRef.current?.click()}
@@ -118,7 +114,6 @@ export default function DocumentsPage() {
             )}
           </div>
 
-          {/* Summary result */}
           {(isDone || isError) && (
             <div className={styles.summaryCard}>
               <div className={styles.summaryHeader}>

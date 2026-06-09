@@ -223,6 +223,9 @@
   border: 1.5px solid #e9ecef;
   border-radius: 14px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 420px;
 }
 
 .summaryHeader {
@@ -232,6 +235,7 @@
   padding: 0.9rem 1.25rem;
   border-bottom: 1px solid #e9ecef;
   background: #f8f9fa;
+  flex-shrink: 0;
 }
 
 .summaryTitle {
@@ -258,6 +262,9 @@
   margin: 0;
   direction: rtl;
   text-align: right;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .summaryError {
