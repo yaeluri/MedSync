@@ -7,6 +7,10 @@ export interface TranscribeResult {
   summary: string;
 }
 
+export interface SummarizeResult {
+  summary: string;
+}
+
 @Injectable()
 export class VisitsService {
   constructor(
@@ -18,5 +22,10 @@ export class VisitsService {
     const transcript = await this.speechService.transcribeAudio(audioBuffer);
     const summary = await this.summaryService.summarize(transcript);
     return { transcript, summary };
+  }
+
+  async summarizeText(text: string): Promise<SummarizeResult> {
+    const summary = await this.summaryService.summarize(text);
+    return { summary };
   }
 }

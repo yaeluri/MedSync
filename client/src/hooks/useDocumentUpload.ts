@@ -3,7 +3,7 @@ import { uploadDocument } from '../api/documents';
 
 type UploadStatus = 'idle' | 'uploading' | 'done' | 'error';
 
-export function useDocumentUpload() {
+export function useDocumentUpload(patientId?: string) {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [summary, setSummary] = useState('');
@@ -23,7 +23,7 @@ export function useDocumentUpload() {
     setStatus('uploading');
     setSummary('');
     try {
-      const data = await uploadDocument(file);
+      const data = await uploadDocument(file, patientId);
       setSummary(data.summary || 'No summary returned.');
       setStatus('done');
     } catch {

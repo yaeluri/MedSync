@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   HttpException,
   InternalServerErrorException,
@@ -8,9 +9,14 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { VisitsService, TranscribeResult } from './visits.service';
+import {
+  VisitsService,
+  TranscribeResult,
+  SummarizeResult,
+} from './visits.service';
 
 export const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
+const MAX_SUMMARY_TEXT_CHARS = 20_000;
 
 @Controller('api/visits')
 export class VisitsController {
@@ -32,6 +38,30 @@ export class VisitsController {
 
     try {
       return await this.visitsService.transcribe(file.buffer);
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+      const detail = err instanceof Error ? err.message : String(err);
+      throw new InternalServerErrorException(detail);
+    }
+  }
+
+  @Post('summarize')
+  async summarize(
+    @Body('text') text?: string,
+  ): Promise<SummarizeResult> {
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+      throw new BadRequestException('text is required');
+    }
+    if (text.length > MAX_SUMMARY_TEXT_CHARS) {
+      throw new BadRequestException(
+        `text exceeds ${MAX_SUMMARY_TEXT_CHARS} character limit`,
+      );
+    }
+
+    try {
+      return await this.visitsService.summarizeText(text);
     } catch (err) {
       if (err instanceof HttpException) {
         throw err;

@@ -4,9 +4,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { VisitsModule } from './visits/visits.module';
 import { DocumentsModule } from './documents/documents.module';
+import { PatientsModule } from './patients/patients.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), VisitsModule, DocumentsModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), VisitsModule, DocumentsModule, PatientsModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
+import { summarizeText } from '../api/visits';
 import styles from './VisitPage.module.css';
 
 const formatTime = (s: number) =>
@@ -14,6 +15,11 @@ export default function VisitPage() {
   const [diagnosis, setDiagnosis] = useState('');
   const [plan, setPlan] = useState('');
 
+  // Live AI summary, seeded from recorder summary then re-generated from edits.
+  const [liveSummary, setLiveSummary] = useState('');
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const lastSummarizedRef = useRef<string>('');
+
   const isRecording = status === 'recording';
   const isProcessing = status === 'processing';
 
@@ -25,8 +31,42 @@ export default function VisitPage() {
     }
   };
 
-  // Auto-fill subjective when transcript arrives
-  const displaySubjective = subjective || (status === 'done' && transcript ? transcript : subjective);
+  // Seed the subjective field once when a transcript arrives.
+  useEffect(() => {
+    if (status === 'done' && transcript) {
+      setSubjective(prev => (prev ? prev : transcript));
+    }
+  }, [status, transcript]);
+
+  // Seed live summary from recorder summary.
+  useEffect(() => {
+    if (summary) {
+      setLiveSummary(summary);
+      lastSummarizedRef.current = subjective;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [summary]);
+
+  // Debounced re-summarization whenever the Subjective text changes.
+  useEffect(() => {
+    const text = subjective.trim();
+    if (!text || text === lastSummarizedRef.current) return;
+
+    const handle = window.setTimeout(async () => {
+      setIsSummarizing(true);
+      try {
+        const data = await summarizeText(text);
+        setLiveSummary(data.summary || '');
+        lastSummarizedRef.current = text;
+      } catch {
+        // Keep previous summary on failure.
+      } finally {
+        setIsSummarizing(false);
+      }
+    }, 800);
+
+    return () => window.clearTimeout(handle);
+  }, [subjective]);
 
   return (
     <div className={styles.main}>
@@ -62,6 +102,12 @@ export default function VisitPage() {
               <div className={styles.noteTitleRow}>
                 <span className={styles.noteLabel}>VISIT NOTE</span>
                 <span className={styles.draftBadge}>Draft</span>
+                {isProcessing && (
+                  <span className={styles.transcribingBadge}>
+                    <span className={`${styles.spinner} ${styles.spinnerSm}`} />
+                    Transcribing...
+                  </span>
+                )}
                 <button className={styles.micBtn} onClick={handleRecord} title="Toggle recording">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -74,13 +120,22 @@ export default function VisitPage() {
 
               <div className={styles.field}>
                 <label className={styles.fieldLabel}>Subjective</label>
-                <textarea
-                  className={styles.textarea}
-                  placeholder="Patient complains of..."
-                  value={displaySubjective}
-                  onChange={e => setSubjective(e.target.value)}
-                  rows={4}
-                />
+                <div className={styles.fieldWrap}>
+                  <textarea
+                    className={styles.textarea}
+                    placeholder="Patient complains of..."
+                    value={subjective}
+                    onChange={e => setSubjective(e.target.value)}
+                    rows={4}
+                    disabled={isProcessing}
+                  />
+                  {isProcessing && (
+                    <div className={styles.transcribingOverlay}>
+                      <span className={styles.spinner} />
+                      Transcribing audio...
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className={styles.field}>
@@ -123,16 +178,25 @@ export default function VisitPage() {
               ) : (
                 <div className={styles.insightCard}>
                   <div className={styles.insightIconWrap}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"/>
-                      <line x1="12" y1="8" x2="12" y2="12"/>
-                      <line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
+                    {isSummarizing ? (
+                      <span className={`${styles.spinner} ${styles.spinnerSm}`} />
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                      </svg>
+                    )}
                   </div>
                   <div>
-                    <div className={styles.insightTitle}>MedSync Insight</div>
+                    <div className={styles.insightTitle}>
+                      MedSync Insight
+                      {isSummarizing && (
+                        <span className={styles.insightUpdating}> · updating…</span>
+                      )}
+                    </div>
                     <div className={styles.insightText}>
-                      {summary || 'Cholesterol up 15% since last year.'}
+                      {liveSummary || 'Type or record a visit to generate an AI summary.'}
                     </div>
                   </div>
                 </div>
