@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Box, Typography, TextField, Button, ToggleButtonGroup, ToggleButton } from '@mui/material';
-import EmailIcon from '@mui/icons-material/Email';
-import LockIcon from '@mui/icons-material/Lock';
-import InputAdornment from '@mui/material/InputAdornment';
 
 type Role = "patient" | "doctor";
 

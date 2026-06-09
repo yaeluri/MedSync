@@ -315,6 +315,13 @@
 /* ── Transcription loader ──────────────────────────────── */
 .fieldWrap {
   position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.fieldWrap > .textarea {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .transcribingOverlay {

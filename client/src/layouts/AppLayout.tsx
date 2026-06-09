@@ -3,7 +3,7 @@ import { Box, Tooltip, IconButton } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import DescriptionIcon from '@mui/icons-material/Description';
 import PersonIcon from '@mui/icons-material/Person';
-import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import PeopleIcon from '@mui/icons-material/People';
 import LogoutIcon from '@mui/icons-material/Logout';
 
 const NAV_ITEM_SX = {
@@ -47,10 +47,7 @@ export default function AppLayout() {
 
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5, flex: 1 }}>
           {isDoctor ? (
-            <>
-              <NavItem to="/visit"     title="Active Visit" icon={<MonitorHeartIcon fontSize="small" />} />
-              <NavItem to="/documents" title="Documents"    icon={<DescriptionIcon  fontSize="small" />} />
-            </>
+            <NavItem to="/patients" title="Patients" icon={<PeopleIcon fontSize="small" />} />
           ) : (
             <>
               <NavItem to="/dashboard" title="Home"      icon={<HomeIcon        fontSize="small" />} />
