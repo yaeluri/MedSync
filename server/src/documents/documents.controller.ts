@@ -1,6 +1,7 @@
 /// <reference types="multer" />
 import {
   BadRequestException,
+  Body,
   Controller,
   HttpException,
   InternalServerErrorException,
@@ -30,7 +31,10 @@ export class DocumentsController {
   @UseInterceptors(
     FileInterceptor('document', { limits: { fileSize: MAX_DOCUMENT_BYTES } }),
   )
-  async upload(@UploadedFile() file: Express.Multer.File) {
+  async upload(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('patientId') patientId?: string,
+  ) {
     if (!file || !file.buffer) {
       throw new BadRequestException('A document file is required');
     }
@@ -51,7 +55,7 @@ export class DocumentsController {
         file.mimetype,
         file.originalname,
       );
-      return result;
+      return { ...result, patientId: patientId ?? null };
     } catch (err) {
       if (err instanceof HttpException) throw err;
       const detail = err instanceof Error ? err.message : String(err);
