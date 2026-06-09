@@ -5,6 +5,7 @@ import AppLayout from './layouts/AppLayout';
 
 const VisitPage = lazy(() => import('./pages/VisitPage'));
 const DocumentsPage = lazy(() => import('./pages/DocumentsPage'));
+const PatientDashboard = lazy(() => import('./pages/PatientDashboard'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const PatientsListPage = lazy(() => import('./pages/PatientsListPage'));
@@ -20,6 +21,9 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
           </Route>
           <Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<PatientDashboard />} />
+            <Route path="/visit" element={<VisitPage />} />
+            <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/patients" element={<PatientsListPage />} />
             <Route path="/patients/:id" element={<PatientDashboardPage />} />
             <Route path="/patients/:id/visit" element={<VisitPage />} />

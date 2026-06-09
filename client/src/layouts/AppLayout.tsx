@@ -1,46 +1,78 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import styles from './AppLayout.module.css';
+import { Box, Tooltip, IconButton } from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home';
+import DescriptionIcon from '@mui/icons-material/Description';
+import PersonIcon from '@mui/icons-material/Person';
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import LogoutIcon from '@mui/icons-material/Logout';
+
+const NAV_ITEM_SX = {
+  width: 40, height: 40, borderRadius: '10px', color: '#adb5bd',
+  '&:hover': { background: '#f1f3f5', color: '#495057' },
+  '&.active': { background: '#eef2ff', color: '#3b5bdb' },
+};
+
+function NavItem({ to, title, icon }: { to: string; title: string; icon: React.ReactNode }) {
+  return (
+    <Tooltip title={title} placement="right">
+      <IconButton component={NavLink} to={to} sx={NAV_ITEM_SX}>
+        {icon}
+      </IconButton>
+    </Tooltip>
+  );
+}
 
 export default function AppLayout() {
   const navigate = useNavigate();
+  const isDoctor = localStorage.getItem('role') === 'doctor';
 
   return (
-    <div className={styles.page}>
-      <aside className={styles.sidebar}>
-        <div className={styles.logo}>M</div>
-
-        <nav className={styles.nav}>
-          {/* Patients */}
-          <NavLink
-            to="/patients"
-            title="Patient List"
-            className={({ isActive }) =>
-              `${styles.navBtn}${isActive ? ` ${styles.navBtnActive}` : ''}`
-            }
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-          </NavLink>
-        </nav>
-
-        <button
-          className={styles.logoutBtn}
-          title="Log out"
-          onClick={() => navigate('/login')}
+    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      <Box
+        component="aside"
+        sx={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          width: 64, borderRight: '1px solid #e9ecef', py: 2, flexShrink: 0, bgcolor: '#fff',
+        }}
+      >
+        <Box
+          sx={{
+            width: 38, height: 38, bgcolor: 'primary.main', borderRadius: '10px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontWeight: 800, fontSize: 18, mb: 2,
+          }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
-        </button>
-      </aside>
+          M
+        </Box>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5, flex: 1 }}>
+          {isDoctor ? (
+            <>
+              <NavItem to="/visit"     title="Active Visit" icon={<MonitorHeartIcon fontSize="small" />} />
+              <NavItem to="/documents" title="Documents"    icon={<DescriptionIcon  fontSize="small" />} />
+            </>
+          ) : (
+            <>
+              <NavItem to="/dashboard" title="Home"      icon={<HomeIcon        fontSize="small" />} />
+              <NavItem to="/documents" title="Documents" icon={<DescriptionIcon fontSize="small" />} />
+              <NavItem to="/profile"   title="Profile"   icon={<PersonIcon      fontSize="small" />} />
+            </>
+          )}
+        </Box>
+
+        <Tooltip title="Log out" placement="right">
+          <IconButton
+            onClick={() => { localStorage.removeItem('role'); navigate('/login'); }}
+            sx={{ width: 40, height: 40, borderRadius: '10px', color: '#adb5bd', '&:hover': { background: '#f1f3f5', color: '#495057' } }}
+          >
+            <LogoutIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Box>
 
       <Outlet />
-    </div>
+    </Box>
   );
 }
+
+
