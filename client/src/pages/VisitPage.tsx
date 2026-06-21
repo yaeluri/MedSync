@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import { summarizeText } from '../api/visits';
+import { useCurrentDoctor } from '../hooks/useCurrentDoctor';
 import styles from './VisitPage.module.css';
 
 const formatTime = (s: number) =>
@@ -9,6 +10,7 @@ const formatTime = (s: number) =>
 
 export default function VisitPage() {
   const navigate = useNavigate();
+  const doctor = useCurrentDoctor();
   const { status, transcript, summary, timer, start, stop } = useAudioRecorder();
 
   const [subjective, setSubjective] = useState('');
@@ -87,10 +89,10 @@ export default function VisitPage() {
           </div>
           <div className={styles.headerRight}>
             <div className={styles.doctorInfo}>
-              <span className={styles.doctorName}>Dr. Rotem Philipp</span>
-              <span className={styles.doctorSpec}>Cardiology</span>
+              <span className={styles.doctorName}>{doctor.fullName}</span>
+              <span className={styles.doctorSpec}>{doctor.specialization}</span>
             </div>
-            <div className={styles.avatar}>DR</div>
+            <div className={styles.avatar}>{doctor.initials}</div>
           </div>
         </header>
 

@@ -1,4 +1,4 @@
-import { apiRequest } from './client';
+import { apiDelete, apiGet, apiPatch, apiPost } from './client';
 
 export interface Encounter {
   id: string;
@@ -18,18 +18,25 @@ export interface PatientDocument {
 
 export interface Patient {
   id: string;
+  userId: string;
   firstName: string;
   lastName: string;
+  fullName: string;
   age: number;
-  gender: 'Male' | 'Female';
+  gender: 'Male' | 'Female' | string;
   dob: string;
+  email: string;
   phone: string;
   hmo: string;
+  bloodType?: string;
   address: string;
+  notes?: string;
   allergy?: string;
   overview: string;
   encounters: Encounter[];
   documents: PatientDocument[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type PatientSummary = Pick<
@@ -37,11 +44,51 @@ export type PatientSummary = Pick<
   'id' | 'firstName' | 'lastName' | 'age' | 'gender'
 >;
 
+export interface CreatePatientInput {
+  fullName: string;
+  email: string;
+  password: string;
+  phone?: string;
+  birthDate?: string;
+  gender?: string;
+  hmo?: string;
+  bloodType?: string;
+  address?: string;
+  notes?: string;
+}
+
+export interface UpdatePatientInput {
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  birthDate?: string;
+  gender?: string;
+  hmo?: string;
+  bloodType?: string;
+  address?: string;
+  notes?: string;
+}
+
 export function getPatients(search?: string): Promise<PatientSummary[]> {
   const query = search ? `?search=${encodeURIComponent(search)}` : '';
-  return apiRequest(`/api/patients${query}`);
+  return apiGet<PatientSummary[]>(`/api/patients${query}`);
 }
 
 export function getPatientById(id: string): Promise<Patient> {
-  return apiRequest(`/api/patients/${encodeURIComponent(id)}`);
+  return apiGet<Patient>(`/api/patients/${encodeURIComponent(id)}`);
+}
+
+export function createPatient(input: CreatePatientInput): Promise<Patient> {
+  return apiPost<Patient>('/api/patients', input);
+}
+
+export function updatePatient(
+  id: string,
+  input: UpdatePatientInput,
+): Promise<Patient> {
+  return apiPatch<Patient>(`/api/patients/${encodeURIComponent(id)}`, input);
+}
+
+export function deletePatient(id: string): Promise<void> {
+  return apiDelete<void>(`/api/patients/${encodeURIComponent(id)}`);
 }

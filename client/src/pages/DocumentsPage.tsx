@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDocumentUpload } from '../hooks/useDocumentUpload';
 import { getPatientById, Patient } from '../api/patients';
+import { useCurrentDoctor } from '../hooks/useCurrentDoctor';
 import styles from './DocumentsPage.module.css';
 
 export default function DocumentsPage() {
   const navigate = useNavigate();
+  const doctor = useCurrentDoctor();
   const { id } = useParams<{ id: string }>();
   const { file, status, summary, fileInputRef, selectFile, upload, reset } =
     useDocumentUpload(id);
@@ -59,10 +61,10 @@ export default function DocumentsPage() {
         </div>
         <div className={styles.headerRight}>
           <div className={styles.doctorInfo}>
-            <span className={styles.doctorName}>Dr. Rotem Philipp</span>
-            <span className={styles.doctorSpec}>Cardiology</span>
+            <span className={styles.doctorName}>{doctor.fullName}</span>
+            <span className={styles.doctorSpec}>{doctor.specialization}</span>
           </div>
-          <div className={styles.avatar}>DR</div>
+          <div className={styles.avatar}>{doctor.initials}</div>
         </div>
       </header>
 

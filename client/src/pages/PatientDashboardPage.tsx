@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getPatientById, Patient } from '../api/patients';
+import { useCurrentDoctor } from '../hooks/useCurrentDoctor';
 import styles from './PatientDashboardPage.module.css';
 
 export default function PatientDashboardPage() {
   const navigate = useNavigate();
+  const doctor = useCurrentDoctor();
   const { id } = useParams<{ id: string }>();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [status, setStatus] = useState<'loading' | 'done' | 'error'>('loading');
@@ -91,10 +93,10 @@ export default function PatientDashboardPage() {
         </div>
         <div className={styles.headerRight}>
           <div className={styles.doctorInfo}>
-            <span className={styles.doctorName}>Dr. Rotem Philipp</span>
-            <span className={styles.doctorSpec}>Cardiology</span>
+            <span className={styles.doctorName}>{doctor.fullName}</span>
+            <span className={styles.doctorSpec}>{doctor.specialization}</span>
           </div>
-          <div className={styles.avatar}>DR</div>
+          <div className={styles.avatar}>{doctor.initials}</div>
         </div>
       </header>
 

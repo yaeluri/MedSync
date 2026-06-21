@@ -6,6 +6,14 @@ import { AppService } from './app.service';
 import { VisitsModule } from './visits/visits.module';
 import { DocumentsModule } from './documents/documents.module';
 import { PatientsModule } from './patients/patients.module';
+import { RolesModule } from './roles/roles.module';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { CaregiversModule } from './caregivers/caregivers.module';
+import { SlotsModule } from './slots/slots.module';
+import { DiagnosesModule } from './diagnoses/diagnoses.module';
+import { MedicinesModule } from './medicines/medicines.module';
+import { MedicalDocumentsModule } from './medical-documents/medical-documents.module';
 
 @Module({
   imports: [
@@ -23,9 +31,17 @@ import { PatientsModule } from './patients/patients.module';
         synchronize: false,
       }),
     }),
+    RolesModule,
+    UsersModule,
+    AuthModule,
+    CaregiversModule,
+    PatientsModule,
+    SlotsModule,
+    DiagnosesModule,
+    MedicinesModule,
+    MedicalDocumentsModule,
     VisitsModule,
     DocumentsModule,
-    PatientsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

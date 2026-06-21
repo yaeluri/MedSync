@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPatients, PatientSummary } from '../api/patients';
+import { useCurrentDoctor } from '../hooks/useCurrentDoctor';
 import styles from './PatientsListPage.module.css';
 
 const initials = (first: string, last: string) =>
@@ -8,6 +9,7 @@ const initials = (first: string, last: string) =>
 
 export default function PatientsListPage() {
   const navigate = useNavigate();
+  const doctor = useCurrentDoctor();
   const [query, setQuery] = useState('');
   const [patients, setPatients] = useState<PatientSummary[]>([]);
   const [status, setStatus] = useState<'loading' | 'done' | 'error'>('loading');
@@ -48,10 +50,10 @@ export default function PatientsListPage() {
         </div>
         <div className={styles.headerRight}>
           <div className={styles.doctorInfo}>
-            <span className={styles.doctorName}>Dr. Rotem Philipp</span>
-            <span className={styles.doctorSpec}>Cardiology</span>
+            <span className={styles.doctorName}>{doctor.fullName}</span>
+            <span className={styles.doctorSpec}>{doctor.specialization}</span>
           </div>
-          <div className={styles.avatar}>DR</div>
+          <div className={styles.avatar}>{doctor.initials}</div>
         </div>
       </header>
 
