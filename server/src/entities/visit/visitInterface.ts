@@ -1,0 +1,27 @@
+import { IPatient } from '../patient/patientInterface';
+import { ICaregiver } from '../caregiver/caregiverInterface';
+import { ISlot } from '../slot/slotInterface';
+import { IVisitRecording } from '../visitRecording/visitRecordingInterface';
+import { IVisitSummary } from '../visitSummary/visitSummaryInterface';
+import { IVisitDiagnosis } from '../visitDiagnosis/visitDiagnosisInterface';
+import { IVisitMedicine } from '../visitMedicine/visitMedicineInterface';
+
+export interface IVisit {
+  id: string;
+  patientId: string;
+  patient?: IPatient;
+  caregiverId: string;
+  caregiver?: ICaregiver;
+  slotId?: string;
+  slot?: ISlot;
+  visitDate: Date;
+  bloodPressure?: string;
+  pulse?: string;
+  bodyTemp?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  recording?: IVisitRecording;
+  summary?: IVisitSummary;
+  diagnoses?: IVisitDiagnosis[];
+  medicines?: IVisitMedicine[];
+}
