@@ -79,7 +79,7 @@ export class DocumentsController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Res() res: Response,
   ) {
-    const file = await this.documentsSercavice.getFileData(id);
+    const file = await this.documentsService.getFileData(id);
     if (!file) throw new NotFoundException('File not found');
     res.setHeader('Content-Type', file.mimeType);
     res.setHeader(
