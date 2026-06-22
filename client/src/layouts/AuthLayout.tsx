@@ -1,53 +1,153 @@
-import { Outlet } from 'react-router-dom';
-import { Box, Typography } from '@mui/material';
-import SecurityIcon from '@mui/icons-material/Security';
+import { Outlet, useParams } from "react-router-dom";
+import { Box, Typography } from "@mui/material";
+import SecurityIcon from "@mui/icons-material/Security";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
+
+const themes = {
+  patient: {
+    gradient: "linear-gradient(135deg, #087f5b 0%, #0ca678 50%, #38d9a9 100%)",
+    title: "Your Health,\nIn Your Hands.",
+    subtitle:
+      "Track your medical history, access documents, and stay connected with your care team — all in one place.",
+    badge: {
+      icon: <FavoriteIcon />,
+      title: "Patient-Centered",
+      desc: "Designed for your health journey",
+    },
+  },
+  therapist: {
+    gradient: "linear-gradient(135deg, #5f3dc4 0%, #7048e8 50%, #9775fa 100%)",
+    title: "Your Practice,\nStreamlined.",
+    subtitle:
+      "Manage patients, document visits with AI-powered summaries, and focus on what matters — care.",
+    badge: {
+      icon: <MedicalServicesIcon />,
+      title: "Built for Clinicians",
+      desc: "AI-assisted documentation",
+    },
+  },
+  default: {
+    gradient: "linear-gradient(135deg, #3b5bdb 0%, #5c7cfa 100%)",
+    title: "Your Medical History,\nUnified.",
+    subtitle:
+      "Connect with your doctors, manage documents, and get AI-powered health insights.",
+    badge: {
+      icon: <SecurityIcon />,
+      title: "Secure & Private",
+      desc: "HIPAA Compliant Encryption",
+    },
+  },
+};
 
 export default function AuthLayout() {
+  const { role } = useParams<{ role: string }>();
+  const theme = themes[role as keyof typeof themes] || themes.default;
+
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      {/* Left panel */}
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
       <Box
         sx={{
-          flex: '0 0 46%', display: 'flex', flexDirection: 'column', justifyContent: 'center',
-          px: 7, py: 6,
-          background: 'linear-gradient(135deg, #3b5bdb 0%, #5c7cfa 100%)', color: '#fff',
-          '@media (max-width:768px)': { flex: 'none', px: 4, py: 4 },
+          flex: "0 0 46%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          px: 7,
+          py: 6,
+          background: theme.gradient,
+          color: "#fff",
+          transition: "background 0.4s ease",
+          "@media (max-width:768px)": { flex: "none", px: 4, py: 4 },
         }}
       >
         <Box
           sx={{
-            width: 52, height: 52, borderRadius: '14px', mb: 5,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 26, fontWeight: 800,
-            background: 'rgba(255,255,255,0.18)',
+            width: 52,
+            height: 52,
+            borderRadius: "14px",
+            mb: 5,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 26,
+            fontWeight: 800,
+            background: "rgba(255,255,255,0.18)",
           }}
         >
           M
         </Box>
 
-        <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1.2, mb: 1.5 }}>
-          Your Medical History,<br />Unified.
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 800,
+            lineHeight: 1.2,
+            mb: 1.5,
+            whiteSpace: "pre-line",
+          }}
+        >
+          {theme.title}
         </Typography>
-        <Typography sx={{ fontSize: 16, lineHeight: 1.6, mb: 5, maxWidth: 320, color: 'rgba(255,255,255,0.82)' }}>
-          Connect with your doctors, manage documents, and get AI-powered health insights.
+        <Typography
+          sx={{
+            fontSize: 16,
+            lineHeight: 1.6,
+            mb: 5,
+            maxWidth: 320,
+            color: "rgba(255,255,255,0.82)",
+          }}
+        >
+          {theme.subtitle}
         </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 2.5, py: 2, borderRadius: '14px', background: 'rgba(255,255,255,0.12)' }}>
-          <Box sx={{ width: 42, height: 42, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'rgba(255,255,255,0.15)' }}>
-            <SecurityIcon />
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            px: 2.5,
+            py: 2,
+            borderRadius: "14px",
+            background: "rgba(255,255,255,0.12)",
+          }}
+        >
+          <Box
+            sx={{
+              width: 42,
+              height: 42,
+              borderRadius: "10px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              background: "rgba(255,255,255,0.15)",
+            }}
+          >
+            {theme.badge.icon}
           </Box>
           <Box>
-            <Typography sx={{ fontWeight: 700, fontSize: 15 }}>Secure &amp; Private</Typography>
-            <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>HIPAA Compliant Encryption</Typography>
+            <Typography sx={{ fontWeight: 700, fontSize: 15 }}>
+              {theme.badge.title}
+            </Typography>
+            <Typography sx={{ fontSize: 12, color: "rgba(255,255,255,0.75)" }}>
+              {theme.badge.desc}
+            </Typography>
           </Box>
         </Box>
       </Box>
 
-      {/* Right panel */}
-      <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#fff', p: 4 }}>
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          bgcolor: "#fff",
+          p: 4,
+        }}
+      >
         <Outlet />
       </Box>
     </Box>
   );
 }
-
