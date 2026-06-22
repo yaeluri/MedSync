@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDocumentUpload } from '../hooks/useDocumentUpload';
 import { getPatientById, Patient } from '../api/patients';
+import { downloadDocument } from '../api/documents';
 import { useCurrentDoctor } from '../hooks/useCurrentDoctor';
 import styles from './DocumentsPage.module.css';
 
@@ -9,7 +10,7 @@ export default function DocumentsPage() {
   const navigate = useNavigate();
   const doctor = useCurrentDoctor();
   const { id } = useParams<{ id: string }>();
-  const { file, status, summary, fileInputRef, selectFile, upload, reset } =
+  const { file, status, summary, uploadedId, uploadedFileName, fileInputRef, selectFile, upload, reset } =
     useDocumentUpload(id);
 
   const [patient, setPatient] = useState<Patient | null>(null);
@@ -126,6 +127,20 @@ export default function DocumentsPage() {
                 </svg>
                 <span className={styles.summaryTitle}>AI Summary</span>
                 {isDone && <span className={styles.summaryBadge}>Done</span>}
+                {isDone && uploadedId && (
+                  <button
+                    className={styles.downloadBtn}
+                    title="Download uploaded file"
+                    onClick={() => downloadDocument(uploadedId, uploadedFileName ?? 'document')}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="7 10 12 15 17 10"/>
+                      <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Download
+                  </button>
+                )}
               </div>
               <p className={`${styles.summaryText} ${isError ? styles.summaryError : ''}`}>
                 {summary}
@@ -163,6 +178,33 @@ export default function DocumentsPage() {
               <p className={styles.emptyState}>Upload a document to see AI insights here.</p>
             )}
           </div>
+
+          {/* Existing documents for this patient */}
+          {patient && patient.documents && patient.documents.length > 0 && (
+            <div className={styles.existingDocsList}>
+              <div className={styles.existingDocsTitle}>Uploaded Documents</div>
+              {patient.documents.map(d => (
+                <div key={d.id} className={styles.existingDocRow}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#868e96" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                  <span className={styles.existingDocName} title={d.name}>{d.name}</span>
+                  <button
+                    className={styles.existingDocDownload}
+                    title="Download"
+                    onClick={() => downloadDocument(d.id, d.name)}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="7 10 12 15 17 10"/>
+                      <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </aside>
       </div>
     </div>

@@ -25,6 +25,7 @@ export interface Patient {
   dob: string;
   email: string;
   phone: string;
+  idNumber?: string;
   hmo: string;
   bloodType?: string;
   address: string;
@@ -39,13 +40,14 @@ export interface Patient {
 
 export type PatientSummary = Pick<
   Patient,
-  'id' | 'firstName' | 'lastName' | 'age' | 'gender'
+  'id' | 'idNumber' | 'firstName' | 'lastName' | 'age' | 'gender'
 >;
 
 export interface CreatePatientInput {
   fullName: string;
   email: string;
   password: string;
+  idNumber?: string;
   phone?: string;
   birthDate?: string;
   gender?: string;

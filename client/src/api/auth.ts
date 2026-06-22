@@ -15,6 +15,7 @@ export interface RegisterPatientInput {
   fullName: string;
   email: string;
   password: string;
+  idNumber?: string;
   phone?: string;
   birthDate?: string;
   gender?: string;

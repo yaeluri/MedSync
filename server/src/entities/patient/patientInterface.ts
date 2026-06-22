@@ -7,6 +7,7 @@ export interface IPatient {
   id: string;
   userId: string;
   user?: IUser;
+  idNumber?: string;
   hmo?: string;
   bloodType?: string;
   address: string;

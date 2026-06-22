@@ -1,12 +1,12 @@
 import { useState, useRef } from 'react';
-import { transcribeAudio } from '../api/visits';
+import { transcribeAudio, VisitSummaryObject } from '../api/visits';
 
 type Status = 'idle' | 'recording' | 'processing' | 'done';
 
 export function useAudioRecorder() {
   const [status, setStatus] = useState<Status>('idle');
   const [transcript, setTranscript] = useState('');
-  const [summary, setSummary] = useState('');
+  const [summary, setSummary] = useState<VisitSummaryObject | null>(null);
   const [timer, setTimer] = useState(0);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -41,7 +41,7 @@ export function useAudioRecorder() {
     setStatus('idle');
     setTimer(0);
     setTranscript('');
-    setSummary('');
+    setSummary(null);
   };
 
   const handleStop = async () => {
@@ -52,7 +52,7 @@ export function useAudioRecorder() {
       setSummary(data.summary || '');
     } catch {
       setTranscript('Transcription failed. Please try again.');
-      setSummary('');
+      setSummary(null);
     }
     setStatus('done');
   };

@@ -35,10 +35,12 @@ export default function PatientsListPage() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return patients;
-    return patients.filter(p =>
-      `${p.firstName} ${p.lastName}`.toLowerCase().includes(q) ||
-      p.id.includes(q),
-    );
+    return patients.filter(p => {
+      return (
+        `${p.firstName} ${p.lastName}`.toLowerCase().includes(q) ||
+        (p.idNumber ?? '').toLowerCase().includes(q)
+      );
+    });
   }, [query, patients]);
 
   return (
@@ -113,7 +115,9 @@ export default function PatientsListPage() {
                       {p.firstName} {p.lastName}
                     </div>
                     <div className={styles.cardMeta}>
-                      ID: {p.id} • {p.age} Years • {p.gender}
+                      ID: {p.idNumber ?? p.id.slice(0, 8).toUpperCase()}
+                      {p.age > 0 ? ` • ${p.age} Years` : ''}
+                      {p.gender ? ` • ${p.gender}` : ''}
                     </div>
                   </div>
                   <svg

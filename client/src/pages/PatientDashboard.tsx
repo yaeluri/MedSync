@@ -19,7 +19,7 @@ import {
   PatientDocument,
   Encounter,
 } from '../api/patients';
-import { uploadDocument } from '../api/documents';
+import { uploadDocument, downloadDocument } from '../api/documents';
 
 type ToastState = { severity: 'success' | 'error'; message: string } | null;
 
@@ -137,7 +137,7 @@ export default function PatientDashboard() {
     };
     setDocuments(prev => [placeholder, ...prev]);
     try {
-      await uploadDocument(file, patientId);
+      await uploadDocument(file, patientId, session?.userId);
       setToast({ severity: 'success', message: `"${file.name}" uploaded successfully.` });
       await refreshDocuments();
     } catch {
@@ -267,20 +267,31 @@ export default function PatientDashboard() {
                     const isImage = kind === 'image' || /^image/i.test(kind);
                     return (
                       <Stack key={doc.id} direction="row" spacing={1.5}
-                        sx={{ p: 1, borderRadius: 2, bgcolor: '#f8f9fa', cursor: 'pointer', alignItems: 'center', '&:hover': { bgcolor: '#f1f3f5' } }}
+                        sx={{ p: 1, borderRadius: 2, bgcolor: '#f8f9fa', alignItems: 'center', '&:hover': { bgcolor: '#f1f3f5' } }}
                       >
                         <Avatar sx={{ width: 36, height: 36, borderRadius: 2,
                                       bgcolor: isImage ? '#fff3e6' : '#e8f4fd',
                                       color:  isImage ? '#e8590c' : '#1c7ed6' }}>
                           {isImage ? <ImageIcon fontSize="small" /> : <PictureAsPdfIcon fontSize="small" />}
                         </Avatar>
-                        <Box sx={{ minWidth: 0 }}>
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
                           <Typography sx={{ fontSize: 13, fontWeight: 600 }} noWrap>{doc.name}</Typography>
                           {isPending
                             ? <Typography sx={{ fontSize: 12, color: '#e8590c', fontWeight: 500 }}>Processing...</Typography>
                             : <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{doc.date || ''}</Typography>
                           }
                         </Box>
+                        {!isPending && (
+                          <Tooltip title="Download">
+                            <IconButton size="small" onClick={() => downloadDocument(doc.id, doc.name)}>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                              </svg>
+                            </IconButton>
+                          </Tooltip>
+                        )}
                       </Stack>
                     );
                   })}

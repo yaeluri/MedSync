@@ -73,6 +73,7 @@ export class PatientsService {
     const { first, last } = splitName(p.user?.fullName);
     return {
       id: p.id,
+      idNumber: p.idNumber,
       firstName: first,
       lastName: last,
       age: calcAge(p.user?.birthDate),
@@ -125,6 +126,7 @@ export class PatientsService {
       dob: formatDob(p.user?.birthDate),
       email: p.user?.email ?? '',
       phone: p.user?.phone ?? '',
+      idNumber: p.idNumber,
       hmo: p.hmo ?? '',
       bloodType: p.bloodType,
       address: p.address ?? '',
@@ -186,6 +188,7 @@ export class PatientsService {
 
       const patient = manager.getRepository(PatientEntity).create({
         userId: savedUser.id,
+        idNumber: input.idNumber,
         hmo: input.hmo,
         bloodType: input.bloodType,
         address: input.address ?? '',

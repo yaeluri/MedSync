@@ -338,3 +338,66 @@
   text-align: center;
   margin-top: 40px;
 }
+
+.downloadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3b5bdb;
+  background: #eef2ff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  margin-left: auto;
+}
+.downloadBtn:hover {
+  background: #dce4ff;
+}
+
+.existingDocsList {
+  border-top: 1px solid #e9ecef;
+  padding: 16px 20px;
+}
+.existingDocsTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #868e96;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+}
+.existingDocRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid #f1f3f5;
+}
+.existingDocRow:last-child {
+  border-bottom: none;
+}
+.existingDocName {
+  flex: 1;
+  font-size: 12px;
+  color: #495057;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.existingDocDownload {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #868e96;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+}
+.existingDocDownload:hover {
+  color: #3b5bdb;
+  background: #eef2ff;
+}

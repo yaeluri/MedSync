@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getPatientById, Patient } from '../api/patients';
+import { downloadDocument } from '../api/documents';
 import { useCurrentDoctor } from '../hooks/useCurrentDoctor';
 import styles from './PatientDashboardPage.module.css';
 
@@ -87,7 +88,7 @@ export default function PatientDashboardPage() {
           <div className={styles.headerTitleBlock}>
             <div className={styles.pageTitle}>{fullName}</div>
             <div className={styles.pageSub}>
-              ID: {patient.id} • {patient.age}yo • {patient.gender}
+              ID: {patient.idNumber ?? patient.id.slice(0, 8).toUpperCase()} • {patient.age}yo • {patient.gender}
             </div>
           </div>
         </div>
@@ -173,13 +174,22 @@ export default function PatientDashboardPage() {
           {/* Two columns */}
           <div className={styles.cols}>
             <div>
-              <div className={styles.colTitle}>Recent Encounters</div>
+              <div className={styles.colHeader}>
+                <div className={styles.colTitle}>Recent Encounters</div>
+              </div>
               {patient.encounters.length === 0 ? (
                 <div className={styles.emptyState}>No prior encounters.</div>
               ) : (
                 <div className={styles.encounterList}>
                   {patient.encounters.map((e, idx) => (
-                    <div key={e.id} className={styles.encounter}>
+                    <div
+                      key={e.id}
+                      className={styles.encounter}
+                      onClick={() => navigate(`/patients/${patient.id}/visits/${e.id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={ev => ev.key === 'Enter' && navigate(`/patients/${patient.id}/visits/${e.id}`)}
+                    >
                       <div className={styles.encounterHead}>
                         <div className={styles.encounterDoctor}>
                           <div
@@ -237,12 +247,23 @@ export default function PatientDashboardPage() {
                           <polyline points="9 15 11 17 15 13" />
                         </svg>
                       </div>
-                      <div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
                         <div className={styles.docName}>{d.name}</div>
                         <div className={styles.docMeta}>
                           {d.date} • {d.kind}
                         </div>
                       </div>
+                      <button
+                        title="Download"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#868e96', padding: '4px', display: 'flex', alignItems: 'center' }}
+                        onClick={() => downloadDocument(d.id, d.name)}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                          <polyline points="7 10 12 15 17 10"/>
+                          <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                      </button>
                     </div>
                   ))}
                 </div>

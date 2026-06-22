@@ -69,6 +69,9 @@ export class MedicalDocument extends BaseEntity implements IMedicalDocument {
   @Column({ type: 'int', name: 'processing_count', default: 0 })
   processingCount: number;
 
+  @Column({ type: 'bytea', name: 'file_data', nullable: true })
+  fileData?: Buffer;
+
   @OneToOne(() => DocumentSummary, (summary) => summary.document)
   summary?: DocumentSummary;
 }

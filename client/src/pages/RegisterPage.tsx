@@ -47,6 +47,7 @@ export default function RegisterPage() {
               fullName,
               email,
               password,
+              idNumber: idOrLicense || undefined,
               address: '',
             });
       saveSession(result);

@@ -17,10 +17,12 @@ import {
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import CakeIcon from '@mui/icons-material/Cake';
+import BadgeIcon from '@mui/icons-material/Badge';
 import EditIcon from '@mui/icons-material/Edit';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { clearSession, loadSession, saveSession } from '../api/auth';
 import { getUser, updateUser, User } from '../api/users';
+import { getCaregiver } from '../api/caregivers';
 
 function initialsFromName(name: string): string {
   return name
@@ -54,6 +56,7 @@ export default function ProfilePage() {
   const session = loadSession();
   const role = (session?.role as 'patient' | 'doctor' | undefined) ?? 'patient';
   const [user, setUser] = useState<User | null>(null);
+  const [idNumber, setIdNumber] = useState<string>('');
   const [editing, setEditing] = useState(false);
   const [phone, setPhone] = useState('');
   const [birthDate, setBirthDate] = useState('');
@@ -72,6 +75,16 @@ export default function ProfilePage() {
       })
       .catch(() => setUser(null));
   }, [session?.userId]);
+
+  useEffect(() => {
+    if (session?.caregiverId) {
+      getCaregiver(session.caregiverId)
+        .then(c => setIdNumber(c.licenseNumber ?? ''))
+        .catch(() => setIdNumber(''));
+    } else {
+      setIdNumber('');
+    }
+  }, [session?.caregiverId]);
 
   const profile = {
     name: user?.fullName ?? session?.fullName ?? 'Guest',
@@ -207,6 +220,16 @@ export default function ProfilePage() {
               <Row icon={<PhoneIcon fontSize="small" />} label="Phone" value={profile.phone} />
               <Divider sx={{ my: 1.5 }} />
               <Row icon={<CakeIcon fontSize="small" />} label="Date of Birth" value={profile.dob} />
+              {idNumber && (
+                <>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Row
+                    icon={<BadgeIcon fontSize="small" />}
+                    label={role === 'doctor' ? 'License Number' : 'ID Number'}
+                    value={idNumber}
+                  />
+                </>
+              )}
             </>
           )}
         </Box>

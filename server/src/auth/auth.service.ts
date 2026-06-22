@@ -84,6 +84,7 @@ export class AuthService {
 
       const patient = manager.getRepository(Patient).create({
         userId: savedUser.id,
+        idNumber: input.idNumber || undefined,
         hmo: input.hmo,
         bloodType: input.bloodType,
         address: input.address || '',

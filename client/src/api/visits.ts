@@ -87,7 +87,13 @@ export interface VisitMedicineInput {
 }
 
 // ── AI endpoints ──────────────────────────────────
-export function transcribeAudio(audioBlob: Blob) {
+export interface VisitSummaryObject {
+  patientComplaints: string;
+  diagnosis: string;
+  doctorsRecommendations: string;
+}
+
+export function transcribeAudio(audioBlob: Blob): Promise<{ transcript: string; summary: VisitSummaryObject }> {
   const formData = new FormData();
   formData.append('audio', audioBlob, 'recording.webm');
   return apiRequest('/api/visits/transcribe', {
@@ -96,8 +102,8 @@ export function transcribeAudio(audioBlob: Blob) {
   });
 }
 
-export function summarizeText(text: string): Promise<{ summary: string }> {
-  return apiPost<{ summary: string }>('/api/visits/summarize', { text });
+export function summarizeText(text: string): Promise<{ summary: VisitSummaryObject }> {
+  return apiPost<{ summary: VisitSummaryObject }>('/api/visits/summarize', { text });
 }
 
 // ── CRUD endpoints ────────────────────────────────

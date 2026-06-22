@@ -27,6 +27,9 @@ export class Patient extends BaseEntity implements IPatient {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
+  @Column({ type: 'varchar', name: 'id_number', nullable: true, unique: true })
+  idNumber?: string;
+
   @Column({ type: 'varchar', nullable: true })
   hmo?: string;
 
