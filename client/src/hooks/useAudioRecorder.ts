@@ -49,9 +49,11 @@ export function useAudioRecorder() {
     try {
       const data = await transcribeAudio(blob);
       setTranscript(data.transcript || '');
-      setSummary(data.summary || '');
+      // Guard: server may return a plain string on older builds
+      const s = data.summary;
+      setSummary(s && typeof s === 'object' ? s : null);
     } catch {
-      setTranscript('Transcription failed. Please try again.');
+      setTranscript('');
       setSummary(null);
     }
     setStatus('done');

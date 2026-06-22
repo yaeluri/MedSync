@@ -98,17 +98,20 @@ export default function VisitPage() {
       const text = v.summary?.summaryText ?? '';
       // Parse the structured summary text back into fields.
       const extract = (label: string) => {
-        const re = new RegExp(`${label}:\\n([\\s\\S]*?)(?=\\n\\n[A-Z][^\\n]+:\\n|$)`);
+        const re = new RegExp(`${label}:\n([\\s\\S]*?)(?=\\n\\n[^\\n]+:\\n|$)`);
         return re.exec(text)?.[1]?.trim() ?? '';
       };
-      setSubjective(extract('Subjective'));
-      setDiagnosis(v.diagnoses?.[0]?.diagnosisDescription ?? extract('Diagnosis'));
-      setPlan(extract('Plan'));
+      const complaints = extract('Patient Complaints');
+      const diag = v.diagnoses?.[0]?.diagnosisDescription ?? extract('Diagnosis');
+      const recs = extract("Doctor's Recommendations");
+      setSubjective(complaints);
+      setDiagnosis(diag);
+      setPlan(recs);
       // Reconstruct a summary object from the saved text for display
       setLiveSummary({
-        patientComplaints: extract('Subjective') || 'Not documented.',
-        diagnosis: (v.diagnoses?.[0]?.diagnosisDescription ?? extract('Diagnosis')) || 'Not documented.',
-        doctorsRecommendations: extract('Plan') || 'Not documented.',
+        patientComplaints: complaints || 'Not documented.',
+        diagnosis: diag || 'Not documented.',
+        doctorsRecommendations: recs || 'Not documented.',
       });
     }).catch(() => {/* ignore — visit may have no summary */});
     return () => { active = false; };
@@ -157,10 +160,9 @@ export default function VisitPage() {
       });
 
       const parts: string[] = [];
-      if (subjective.trim()) parts.push(`Subjective:\n${subjective.trim()}`);
+      if (subjective.trim()) parts.push(`Patient Complaints:\n${subjective.trim()}`);
       if (diagnosis.trim()) parts.push(`Diagnosis:\n${diagnosis.trim()}`);
-      if (plan.trim()) parts.push(`Plan:\n${plan.trim()}`);
-      // liveSummary is now a structured object — no need to persist separately (fields already in parts above)
+      if (plan.trim()) parts.push(`Doctor's Recommendations:\n${plan.trim()}`);
       const summaryText = parts.join('\n\n');
 
       if (summaryText) {
@@ -219,7 +221,12 @@ export default function VisitPage() {
 
   // Fallback: if transcription succeeded but no summary, seed subjective from raw transcript.
   useEffect(() => {
-    if (status === 'done' && transcript && !summary) {
+    if (status !== 'done') return;
+    if (!transcript && !summary) {
+      setToast({ severity: 'error', message: 'Transcription failed. Please try again.' });
+      return;
+    }
+    if (transcript && !summary) {
       setSubjective(prev => prev || transcript);
     }
   }, [status, transcript, summary]);
@@ -301,11 +308,11 @@ export default function VisitPage() {
               </div>
 
               <div className={styles.field}>
-                <label className={styles.fieldLabel}>Subjective</label>
+                <label className={styles.fieldLabel}>Patient Complaints</label>
                 <div className={styles.fieldWrap}>
                   <textarea
                     className={styles.textarea}
-                    placeholder="Patient complains of..."
+                    placeholder="Patient complaints and symptoms..."
                     value={subjective}
                     onChange={e => setSubjective(e.target.value)}
                     rows={4}
@@ -335,10 +342,10 @@ export default function VisitPage() {
               </div>
 
               <div className={styles.field}>
-                <label className={styles.fieldLabel}>Plan</label>
+                <label className={styles.fieldLabel}>Doctor's Recommendations</label>
                 <textarea
                   className={styles.textarea}
-                  placeholder="Treatment plan..."
+                  placeholder="Treatment, medications, follow-up..."
                   value={plan}
                   onChange={e => setPlan(e.target.value)}
                   rows={4}
