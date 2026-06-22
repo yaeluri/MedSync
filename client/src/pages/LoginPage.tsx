@@ -6,7 +6,6 @@ import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 const roleConfig = {
   patient: {
     label: "Patient",
-    hebrewLabel: "מטופל",
     icon: <PersonIcon sx={{ fontSize: 16 }} />,
     color: "#0ca678",
     heading: "Welcome Back",
@@ -15,7 +14,6 @@ const roleConfig = {
   },
   therapist: {
     label: "Therapist",
-    hebrewLabel: "מטפל",
     icon: <LocalHospitalIcon sx={{ fontSize: 16 }} />,
     color: "#7048e8",
     heading: "Welcome Back",
@@ -40,7 +38,7 @@ export default function LoginPage() {
     <Box sx={{ width: "100%", maxWidth: 420, p: 4 }}>
       <Chip
         icon={config.icon}
-        label={`${config.label} · ${config.hebrewLabel}`}
+        label={config.label}
         size="small"
         sx={{
           mb: 3,

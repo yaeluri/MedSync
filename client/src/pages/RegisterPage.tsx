@@ -19,7 +19,6 @@ import InputAdornment from "@mui/material/InputAdornment";
 const roleConfig = {
   patient: {
     label: "Patient",
-    hebrewLabel: "מטופל",
     icon: <PersonIcon sx={{ fontSize: 16 }} />,
     color: "#0ca678",
     heading: "Create Patient Account",
@@ -28,7 +27,6 @@ const roleConfig = {
   },
   therapist: {
     label: "Therapist",
-    hebrewLabel: "מטפל",
     icon: <LocalHospitalIcon sx={{ fontSize: 16 }} />,
     color: "#7048e8",
     heading: "Create Therapist Account",
@@ -47,7 +45,7 @@ export default function RegisterPage() {
     <Box sx={{ width: "100%", maxWidth: 420, p: 4 }}>
       <Chip
         icon={config.icon}
-        label={`${config.label} · ${config.hebrewLabel}`}
+        label={config.label}
         size="small"
         sx={{
           mb: 3,
@@ -90,7 +88,7 @@ export default function RegisterPage() {
 
         {role === "therapist" ? (
           <TextField
-            placeholder="License Number (מספר רישיון)"
+            placeholder="License Number"
             autoComplete="off"
             slotProps={{
               input: {
@@ -104,7 +102,7 @@ export default function RegisterPage() {
           />
         ) : (
           <TextField
-            placeholder="ID Number (תעודת זהות)"
+            placeholder="ID Number (Teudat Zehut)"
             autoComplete="off"
             slotProps={{
               input: {
@@ -148,7 +146,7 @@ export default function RegisterPage() {
         />
 
         {role === "therapist" && (
-          <TextField placeholder="Specialization (התמחות)" autoComplete="off" />
+          <TextField placeholder="Specialization" autoComplete="off" />
         )}
 
         <FormControlLabel

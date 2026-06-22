@@ -103,11 +103,6 @@ export default function RoleSelectPage() {
             Patient
           </Typography>
           <Typography
-            sx={{ fontSize: 13, color: "#1a1a2e", mb: 0.5, fontWeight: 500 }}
-          >
-            מטופל
-          </Typography>
-          <Typography
             sx={{ fontSize: 13, color: "text.secondary", lineHeight: 1.5 }}
           >
             Access your medical records, manage appointments, and communicate
@@ -151,11 +146,6 @@ export default function RoleSelectPage() {
             sx={{ fontWeight: 700, fontSize: 18, color: "#1a1a2e", mb: 0.5 }}
           >
             Therapist
-          </Typography>
-          <Typography
-            sx={{ fontSize: 13, color: "#1a1a2e", mb: 0.5, fontWeight: 500 }}
-          >
-            מטפל
           </Typography>
           <Typography
             sx={{ fontSize: 13, color: "text.secondary", lineHeight: 1.5 }}
