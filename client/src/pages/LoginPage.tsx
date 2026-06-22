@@ -2,24 +2,24 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Box, Typography, TextField, Button, Chip, Alert } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
-import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
+import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
 import { login, saveSession } from "../api/auth";
 
 const roleConfig = {
   patient: {
-    label: "?????",
+    label: "מטופל",
     icon: <PersonIcon sx={{ fontSize: 16 }} />,
     color: "#0ca678",
-    heading: "???? ???",
-    subtitle: "????? ??????? ??? ????? ??????? ??????? ???.",
+    heading: "ברוך הבא",
+    subtitle: "התחבר לחשבונך כדי לצפות ברשומות הבריאות שלך.",
     redirect: "/dashboard",
   },
   therapist: {
-    label: "????",
-    icon: <LocalHospitalIcon sx={{ fontSize: 16 }} />,
+    label: "רופא",
+    icon: <MedicalServicesIcon sx={{ fontSize: 16 }} />,
     color: "#7048e8",
-    heading: "???? ???",
-    subtitle: "????? ??????? ?????? ???????.",
+    heading: "ברוך הבא",
+    subtitle: "התחבר לחשבונך לניהול מטופלים.",
     redirect: "/patients",
   },
 };
@@ -37,7 +37,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     if (!email || !password) {
-      setError("?????? ?????? ??????");
+      setError("נדרשים אימייל וסיסמה");
       return;
     }
     setSubmitting(true);
@@ -46,14 +46,14 @@ export default function LoginPage() {
       saveSession(result);
       navigate(result.role === "patient" ? "/dashboard" : "/patients");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "??????? ?????");
+      setError(err instanceof Error ? err.message : "התחברות נכשלה");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Box sx={{ width: "100%", maxWidth: 420, p: 4 }}>
+    <Box sx={{ width: "100%", maxWidth: 420, p: 4, direction: "rtl", textAlign: "right" }}>
       <Chip
         icon={config.icon}
         label={config.label}
@@ -80,25 +80,25 @@ export default function LoginPage() {
       <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
         <TextField
           type="email"
-          placeholder="????? ??????"
+          placeholder="כתובת אימייל"
           autoComplete="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
         />
         <TextField
           type="password"
-          placeholder="?????"
+          placeholder="סיסמה"
           autoComplete="current-password"
           value={password}
           onChange={e => setPassword(e.target.value)}
         />
-        <Box sx={{ textAlign: "left" }}>
+        <Box sx={{ textAlign: "right" }}>
           <Typography
             component="a"
             href="#"
             sx={{ fontSize: 13, color: config.color, fontWeight: 500, textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
           >
-            ????? ?????
+            שכחתי סיסמה
           </Typography>
         </Box>
         <Button
@@ -109,18 +109,18 @@ export default function LoginPage() {
           disabled={submitting}
           sx={{ mt: 0.5, py: 1.4, fontSize: 16, bgcolor: config.color, "&:hover": { bgcolor: config.color, filter: "brightness(0.9)" } }}
         >
-          {submitting ? "?????�" : "???????"}
+          {submitting ? "מתחבר…" : "התחברות"}
         </Button>
       </Box>
 
       <Typography sx={{ textAlign: "center", mt: 2, fontSize: 14, color: "text.secondary" }}>
-        ??? ?? ??????{" "}
+        אין לך חשבון?{" "}
         <Typography
           component={Link}
           to={`/register/${role}`}
           sx={{ color: config.color, fontWeight: 600, textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
         >
-          ?????
+          הרשמה
         </Typography>
       </Typography>
 
@@ -130,7 +130,7 @@ export default function LoginPage() {
           to="/login"
           sx={{ color: "text.secondary", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
         >
-          ? ???? ?????
+          החלף תפקיד ↩
         </Typography>
       </Typography>
     </Box>

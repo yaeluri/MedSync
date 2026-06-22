@@ -11,18 +11,18 @@ import { registerDoctor, registerPatient, saveSession } from "../api/auth";
 
 const roleConfig = {
   patient: {
-    label: "?????",
+    label: "מטופל",
     icon: <PersonIcon sx={{ fontSize: 16 }} />,
     color: "#0ca678",
-    heading: "????? ????? ?????",
-    subtitle: "??? ?? ??????? ???????? ??? ????? ???.",
+    heading: "יצירת חשבון מטופל",
+    subtitle: "נהל את הרשומות הרפואיות שלך במקום אחד.",
   },
   therapist: {
-    label: "????",
+    label: "רופא",
     icon: <LocalHospitalIcon sx={{ fontSize: 16 }} />,
     color: "#7048e8",
-    heading: "????? ????? ????",
-    subtitle: "???? ?? ???????? ??? ???? ???????.",
+    heading: "יצירת חשבון רופא",
+    subtitle: "הגדר את הפרקטיקה שלך ונהל מטופלים.",
   },
 };
 
@@ -42,8 +42,8 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!agreed) { setError("?? ???? ?? ???? ?????? ???????? ???????"); return; }
-    if (!fullName || !email || !password) { setError("?? ???, ?????? ?????? ?? ???? ????"); return; }
+    if (!agreed) { setError("יש לאשר את תנאי השימוש ומדיניות הפרטיות"); return; }
+    if (!fullName || !email || !password) { setError("שם מלא, אימייל וסיסמה הם שדות חובה"); return; }
     setSubmitting(true);
     try {
       const result = role === "therapist"
@@ -52,14 +52,14 @@ export default function RegisterPage() {
       saveSession(result);
       navigate(result.role === "patient" ? "/dashboard" : "/patients");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "????? ?????");
+      setError(err instanceof Error ? err.message : "הרשמה נכשלה");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Box sx={{ width: "100%", maxWidth: 420, p: 4 }}>
+    <Box sx={{ width: "100%", maxWidth: 420, p: 4, direction: "rtl", textAlign: "right" }}>
       <Chip
         icon={config.icon}
         label={config.label}
@@ -84,54 +84,54 @@ export default function RegisterPage() {
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
       <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-        <TextField placeholder="?? ???" autoComplete="name" value={fullName} onChange={e => setFullName(e.target.value)}
+        <TextField placeholder="שם מלא" autoComplete="name" value={fullName} onChange={e => setFullName(e.target.value)}
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><PersonIcon sx={{ color: "#adb5bd", fontSize: 18 }} /></InputAdornment> } }} />
 
         {role === "therapist" ? (
-          <TextField placeholder="???? ??????" autoComplete="off" value={idOrLicense} onChange={e => setIdOrLicense(e.target.value)}
+          <TextField placeholder="מספר רישיון" autoComplete="off" value={idOrLicense} onChange={e => setIdOrLicense(e.target.value)}
             slotProps={{ input: { startAdornment: <InputAdornment position="start"><BadgeIcon sx={{ color: "#adb5bd", fontSize: 18 }} /></InputAdornment> } }} />
         ) : (
-          <TextField placeholder="????? ????" autoComplete="off" value={idOrLicense} onChange={e => setIdOrLicense(e.target.value)}
+          <TextField placeholder="תעודת זהות" autoComplete="off" value={idOrLicense} onChange={e => setIdOrLicense(e.target.value)}
             slotProps={{ input: { startAdornment: <InputAdornment position="start"><BadgeIcon sx={{ color: "#adb5bd", fontSize: 18 }} /></InputAdornment> } }} />
         )}
 
-        <TextField type="email" placeholder="????? ??????" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)}
+        <TextField type="email" placeholder="כתובת אימייל" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)}
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><EmailIcon sx={{ color: "#adb5bd", fontSize: 18 }} /></InputAdornment> } }} />
-        <TextField type="password" placeholder="?????" autoComplete="new-password" value={password} onChange={e => setPassword(e.target.value)}
+        <TextField type="password" placeholder="סיסמה" autoComplete="new-password" value={password} onChange={e => setPassword(e.target.value)}
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><LockIcon sx={{ color: "#adb5bd", fontSize: 18 }} /></InputAdornment> } }} />
 
         {role === "therapist" && (
-          <TextField placeholder="??????" autoComplete="off" value={specialization} onChange={e => setSpecialization(e.target.value)} />
+          <TextField placeholder="התמחות" autoComplete="off" value={specialization} onChange={e => setSpecialization(e.target.value)} />
         )}
 
         <FormControlLabel
           control={<Checkbox checked={agreed} onChange={e => setAgreed(e.target.checked)} size="small" sx={{ color: config.color, "&.Mui-checked": { color: config.color } }} />}
           label={
             <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
-              ??? ????? ?<Typography component="a" href="#" sx={{ fontSize: 13, color: config.color, fontWeight: 600, textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>???? ?????</Typography>
-              {" "}?<Typography component="a" href="#" sx={{ fontSize: 13, color: config.color, fontWeight: 600, textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>??????? ??????</Typography>
+              אני מסכים ל<Typography component="a" href="#" sx={{ fontSize: 13, color: config.color, fontWeight: 600, textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>תנאי שימוש</Typography>
+              {" "}ו<Typography component="a" href="#" sx={{ fontSize: 13, color: config.color, fontWeight: 600, textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>מדיניות פרטיות</Typography>
             </Typography>
           }
         />
 
         <Button type="submit" variant="contained" size="large" fullWidth disabled={submitting}
           sx={{ mt: 0.5, py: 1.4, fontSize: 16, bgcolor: config.color, "&:hover": { bgcolor: config.color, filter: "brightness(0.9)" } }}>
-          {submitting ? "???? ?????�" : "????? ?????"}
+          {submitting ? "יוצר חשבון…" : "יצירת חשבון"}
         </Button>
       </Box>
 
       <Typography sx={{ textAlign: "center", mt: 2, fontSize: 14, color: "text.secondary" }}>
-        ??? ?? ?? ??????{" "}
+        כבר יש לך חשבון?{" "}
         <Typography component={Link} to={`/login/${role}`}
           sx={{ color: config.color, fontWeight: 600, textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>
-          ???????
+          התחברות
         </Typography>
       </Typography>
 
       <Typography sx={{ textAlign: "center", mt: 1.5, fontSize: 13, color: "text.secondary" }}>
         <Typography component={Link} to="/register"
           sx={{ color: "text.secondary", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>
-          ? ???? ?????
+          ← החלף תפקיד
         </Typography>
       </Typography>
     </Box>
