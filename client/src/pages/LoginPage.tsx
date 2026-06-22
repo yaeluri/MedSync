@@ -1,73 +1,137 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Box, Typography, TextField, Button, ToggleButtonGroup, ToggleButton, Alert } from '@mui/material';
-import { login, saveSession } from '../api/auth';
+import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Box, Typography, TextField, Button, Chip, Alert } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
+import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
+import { login, saveSession } from "../api/auth";
 
-type Role = "patient" | "doctor";
+const roleConfig = {
+  patient: {
+    label: "?????",
+    icon: <PersonIcon sx={{ fontSize: 16 }} />,
+    color: "#0ca678",
+    heading: "???? ???",
+    subtitle: "????? ??????? ??? ????? ??????? ??????? ???.",
+    redirect: "/dashboard",
+  },
+  therapist: {
+    label: "????",
+    icon: <LocalHospitalIcon sx={{ fontSize: 16 }} />,
+    color: "#7048e8",
+    heading: "???? ???",
+    subtitle: "????? ??????? ?????? ???????.",
+    redirect: "/patients",
+  },
+};
 
 export default function LoginPage() {
-  const [role, setRole] = useState<Role>('patient');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { role } = useParams<{ role: string }>();
+  const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.patient;
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     if (!email || !password) {
-      setError('נדרשים אימייל וסיסמה');
+      setError("?????? ?????? ??????");
       return;
     }
     setSubmitting(true);
     try {
       const result = await login(email, password);
       saveSession(result);
-      navigate(result.role === 'patient' ? '/dashboard' : '/patients');
+      navigate(result.role === "patient" ? "/dashboard" : "/patients");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : "??????? ?????");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 420, p: 4 }}>
-      <ToggleButtonGroup
-        value={role} exclusive size="small"
-        onChange={(_, v) => v && setRole(v)}
-        sx={{ mb: 3, background: '#f1f3f5', borderRadius: '12px', p: '4px', border: 'none' }}
-      >
-        <ToggleButton value="patient" sx={{ border: 'none', borderRadius: '9px !important', px: 2.5, fontWeight: 500 }}>מטופל</ToggleButton>
-        <ToggleButton value="doctor"  sx={{ border: 'none', borderRadius: '9px !important', px: 2.5, fontWeight: 500 }}>רופא</ToggleButton>
-      </ToggleButtonGroup>
+    <Box sx={{ width: "100%", maxWidth: 420, p: 4 }}>
+      <Chip
+        icon={config.icon}
+        label={config.label}
+        size="small"
+        sx={{
+          mb: 3,
+          fontWeight: 600,
+          bgcolor: `${config.color}14`,
+          color: config.color,
+          border: `1px solid ${config.color}30`,
+          "& .MuiChip-icon": { color: config.color },
+        }}
+      />
 
-      <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a2e', mb: 0.5 }}>ברוך הבא</Typography>
-      <Typography sx={{ fontSize: 14, color: 'text.secondary', mb: 2.5 }}>התחבר לחשבונך כדי להמשיך.</Typography>
+      <Typography variant="h5" sx={{ fontWeight: 700, color: "#1a1a2e", mb: 0.5 }}>
+        {config.heading}
+      </Typography>
+      <Typography sx={{ fontSize: 14, color: "text.secondary", mb: 2.5 }}>
+        {config.subtitle}
+      </Typography>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+      <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
         <TextField
-          type="email" placeholder="כתובת אימייל" autoComplete="email"
-          value={email} onChange={e => setEmail(e.target.value)}
+          type="email"
+          placeholder="????? ??????"
+          autoComplete="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
         />
         <TextField
-          type="password" placeholder="סיסמה" autoComplete="current-password"
-          value={password} onChange={e => setPassword(e.target.value)}
+          type="password"
+          placeholder="?????"
+          autoComplete="current-password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
         />
-        <Box sx={{ textAlign: 'left' }}>
-          <Typography component="a" href="#" sx={{ fontSize: 13, color: 'primary.main', fontWeight: 500, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>שכחתי סיסמה</Typography>
+        <Box sx={{ textAlign: "left" }}>
+          <Typography
+            component="a"
+            href="#"
+            sx={{ fontSize: 13, color: config.color, fontWeight: 500, textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
+          >
+            ????? ?????
+          </Typography>
         </Box>
-        <Button type="submit" variant="contained" size="large" fullWidth disabled={submitting} sx={{ mt: 0.5, py: 1.4, fontSize: 16 }}>
-          {submitting ? 'מתחבר…' : 'התחברות'}
+        <Button
+          type="submit"
+          variant="contained"
+          size="large"
+          fullWidth
+          disabled={submitting}
+          sx={{ mt: 0.5, py: 1.4, fontSize: 16, bgcolor: config.color, "&:hover": { bgcolor: config.color, filter: "brightness(0.9)" } }}
+        >
+          {submitting ? "?????�" : "???????"}
         </Button>
       </Box>
 
-      <Typography sx={{ textAlign: 'center', mt: 2, fontSize: 14, color: 'text.secondary' }}>
-        אין לך חשבון?{' '}
-        <Typography component={Link} to="/register" sx={{ color: 'primary.main', fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>הרשמה</Typography>
+      <Typography sx={{ textAlign: "center", mt: 2, fontSize: 14, color: "text.secondary" }}>
+        ??? ?? ??????{" "}
+        <Typography
+          component={Link}
+          to={`/register/${role}`}
+          sx={{ color: config.color, fontWeight: 600, textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
+        >
+          ?????
+        </Typography>
+      </Typography>
+
+      <Typography sx={{ textAlign: "center", mt: 1.5, fontSize: 13, color: "text.secondary" }}>
+        <Typography
+          component={Link}
+          to="/login"
+          sx={{ color: "text.secondary", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
+        >
+          ? ???? ?????
+        </Typography>
       </Typography>
     </Box>
   );
