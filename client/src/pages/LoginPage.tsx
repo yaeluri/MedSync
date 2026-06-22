@@ -17,7 +17,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     if (!email || !password) {
-      setError('Email and password are required');
+      setError('נדרשים אימייל וסיסמה');
       return;
     }
     setSubmitting(true);
@@ -39,35 +39,35 @@ export default function LoginPage() {
         onChange={(_, v) => v && setRole(v)}
         sx={{ mb: 3, background: '#f1f3f5', borderRadius: '12px', p: '4px', border: 'none' }}
       >
-        <ToggleButton value="patient" sx={{ border: 'none', borderRadius: '9px !important', px: 2.5, fontWeight: 500 }}>Patient</ToggleButton>
-        <ToggleButton value="doctor"  sx={{ border: 'none', borderRadius: '9px !important', px: 2.5, fontWeight: 500 }}>Doctor</ToggleButton>
+        <ToggleButton value="patient" sx={{ border: 'none', borderRadius: '9px !important', px: 2.5, fontWeight: 500 }}>מטופל</ToggleButton>
+        <ToggleButton value="doctor"  sx={{ border: 'none', borderRadius: '9px !important', px: 2.5, fontWeight: 500 }}>רופא</ToggleButton>
       </ToggleButtonGroup>
 
-      <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a2e', mb: 0.5 }}>Welcome Back</Typography>
-      <Typography sx={{ fontSize: 14, color: 'text.secondary', mb: 2.5 }}>Sign in to your account to continue.</Typography>
+      <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a2e', mb: 0.5 }}>ברוך הבא</Typography>
+      <Typography sx={{ fontSize: 14, color: 'text.secondary', mb: 2.5 }}>התחבר לחשבונך כדי להמשיך.</Typography>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
       <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         <TextField
-          type="email" placeholder="Email Address" autoComplete="email"
+          type="email" placeholder="כתובת אימייל" autoComplete="email"
           value={email} onChange={e => setEmail(e.target.value)}
         />
         <TextField
-          type="password" placeholder="Password" autoComplete="current-password"
+          type="password" placeholder="סיסמה" autoComplete="current-password"
           value={password} onChange={e => setPassword(e.target.value)}
         />
-        <Box sx={{ textAlign: 'right' }}>
-          <Typography component="a" href="#" sx={{ fontSize: 13, color: 'primary.main', fontWeight: 500, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>Forgot password?</Typography>
+        <Box sx={{ textAlign: 'left' }}>
+          <Typography component="a" href="#" sx={{ fontSize: 13, color: 'primary.main', fontWeight: 500, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>שכחתי סיסמה</Typography>
         </Box>
         <Button type="submit" variant="contained" size="large" fullWidth disabled={submitting} sx={{ mt: 0.5, py: 1.4, fontSize: 16 }}>
-          {submitting ? 'Signing in…' : 'Sign In'}
+          {submitting ? 'מתחבר…' : 'התחברות'}
         </Button>
       </Box>
 
       <Typography sx={{ textAlign: 'center', mt: 2, fontSize: 14, color: 'text.secondary' }}>
-        Don't have an account?{' '}
-        <Typography component={Link} to="/register" sx={{ color: 'primary.main', fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>Sign Up</Typography>
+        אין לך חשבון?{' '}
+        <Typography component={Link} to="/register" sx={{ color: 'primary.main', fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>הרשמה</Typography>
       </Typography>
     </Box>
   );

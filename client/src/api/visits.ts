@@ -43,7 +43,19 @@ export interface Visit {
     summaryText: string;
     visitType: VisitSummaryType;
   };
-  patient?: any;
+  patient?: {
+    id: string;
+    idNumber?: string;
+    hmo?: string;
+    bloodType?: string;
+    user?: {
+      fullName: string;
+      email: string;
+      phone?: string;
+      birthDate?: string;
+      gender?: string;
+    };
+  };
   caregiver?: any;
   diagnoses?: any[];
   medicines?: any[];

@@ -47,8 +47,8 @@ export default function PatientsListPage() {
     <div className={styles.main}>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <div className={styles.pageTitle}>Patient List</div>
-          <div className={styles.pageSub}>Select a patient to begin</div>
+          <div className={styles.pageTitle}>רשימת מטופלים</div>
+          <div className={styles.pageSub}>בחר מטופל להתחלת הטיפול</div>
         </div>
         <div className={styles.headerRight}>
           <div className={styles.doctorInfo}>
@@ -79,18 +79,18 @@ export default function PatientsListPage() {
             <input
               type="text"
               className={styles.searchInput}
-              placeholder="Search by name or ID..."
+              placeholder="חיפוש לפי שם או תעודת זהות..."
               value={query}
               onChange={e => setQuery(e.target.value)}
             />
           </div>
 
           {status === 'loading' ? (
-            <div className={styles.empty}>Loading patients...</div>
+            <div className={styles.empty}>טוען מטופלים...</div>
           ) : status === 'error' ? (
-            <div className={styles.empty}>Failed to load patients.</div>
+            <div className={styles.empty}>טעינת המטופלים נכשלה.</div>
           ) : filtered.length === 0 ? (
-            <div className={styles.empty}>No patients match your search.</div>
+            <div className={styles.empty}>לא נמצאו מטופלים תואמים.</div>
           ) : (
             <div className={styles.list}>
               {filtered.map(p => (
@@ -115,9 +115,9 @@ export default function PatientsListPage() {
                       {p.firstName} {p.lastName}
                     </div>
                     <div className={styles.cardMeta}>
-                      ID: {p.idNumber ?? p.id.slice(0, 8).toUpperCase()}
-                      {p.age > 0 ? ` • ${p.age} Years` : ''}
-                      {p.gender ? ` • ${p.gender}` : ''}
+                      תע"ז: {p.idNumber ?? p.id.slice(0, 8).toUpperCase()}
+                      {p.age > 0 ? ` • גיל ${p.age}` : ''}
+                      {p.gender ? ` • ${p.gender === 'Male' ? 'זכר' : p.gender === 'Female' ? 'נקבה' : p.gender}` : ''}
                     </div>
                   </div>
                   <svg

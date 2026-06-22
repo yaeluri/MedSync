@@ -25,11 +25,11 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
     if (!agreed) {
-      setError('You must agree to the Terms and Privacy Policy');
+      setError('יש לאשר את תנאי השימוש ומדיניות הפרטיות');
       return;
     }
     if (!fullName || !email || !password) {
-      setError('Full name, email and password are required');
+      setError('שם מלא, אימייל וסיסמה הם שדות חובה');
       return;
     }
     setSubmitting(true);
@@ -66,26 +66,26 @@ export default function RegisterPage() {
         onChange={(_, v) => v && setRole(v)}
         sx={{ mb: 3, background: '#f1f3f5', borderRadius: '12px', p: '4px', border: 'none' }}
       >
-        <ToggleButton value="patient" sx={{ border: 'none', borderRadius: '9px !important', px: 2.5, fontWeight: 500 }}>Patient</ToggleButton>
-        <ToggleButton value="doctor"  sx={{ border: 'none', borderRadius: '9px !important', px: 2.5, fontWeight: 500 }}>Doctor</ToggleButton>
+        <ToggleButton value="patient" sx={{ border: 'none', borderRadius: '9px !important', px: 2.5, fontWeight: 500 }}>מטופל</ToggleButton>
+        <ToggleButton value="doctor"  sx={{ border: 'none', borderRadius: '9px !important', px: 2.5, fontWeight: 500 }}>רופא</ToggleButton>
       </ToggleButtonGroup>
 
-      <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a2e', mb: 0.5 }}>Create Account</Typography>
-      <Typography sx={{ fontSize: 14, color: 'text.secondary', mb: 2.5 }}>Start your unified health journey.</Typography>
+      <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a2e', mb: 0.5 }}>יצירת חשבון</Typography>
+      <Typography sx={{ fontSize: 14, color: 'text.secondary', mb: 2.5 }}>הצטרף למערכת הבריאות המאוחדת שלנו.</Typography>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
       <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-        <TextField placeholder="Full Name" autoComplete="name"
+        <TextField placeholder="שם מלא" autoComplete="name"
           value={fullName} onChange={e => setFullName(e.target.value)}
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><PersonIcon sx={{ color: '#adb5bd', fontSize: 18 }} /></InputAdornment> } }} />
-        <TextField placeholder={role === 'doctor' ? 'License Number' : 'ID Number (Teudat Zehut)'} autoComplete="off"
+        <TextField placeholder={role === 'doctor' ? 'מספר רישיון' : 'תעודת זהות'} autoComplete="off"
           value={idOrLicense} onChange={e => setIdOrLicense(e.target.value)}
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><BadgeIcon sx={{ color: '#adb5bd', fontSize: 18 }} /></InputAdornment> } }} />
-        <TextField type="email" placeholder="Email Address" autoComplete="email"
+        <TextField type="email" placeholder="כתובת אימייל" autoComplete="email"
           value={email} onChange={e => setEmail(e.target.value)}
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><EmailIcon sx={{ color: '#adb5bd', fontSize: 18 }} /></InputAdornment> } }} />
-        <TextField type="password" placeholder="Password" autoComplete="new-password"
+        <TextField type="password" placeholder="סיסמה" autoComplete="new-password"
           value={password} onChange={e => setPassword(e.target.value)}
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><LockIcon sx={{ color: '#adb5bd', fontSize: 18 }} /></InputAdornment> } }} />
 
@@ -93,22 +93,22 @@ export default function RegisterPage() {
           control={<Checkbox checked={agreed} onChange={e => setAgreed(e.target.checked)} size="small" />}
           label={
             <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>
-              I agree to the{' '}
-              <Typography component="a" href="#" sx={{ fontSize: 13, color: 'primary.main', fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>Terms</Typography>
-              {' '}and{' '}
-              <Typography component="a" href="#" sx={{ fontSize: 13, color: 'primary.main', fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>Privacy Policy</Typography>
+              אני מסכים ל{' '}
+              <Typography component="a" href="#" sx={{ fontSize: 13, color: 'primary.main', fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>תנאי שימוש</Typography>
+              {' '}ו{' '}
+              <Typography component="a" href="#" sx={{ fontSize: 13, color: 'primary.main', fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>מדיניות פרטיות</Typography>
             </Typography>
           }
         />
 
         <Button type="submit" variant="contained" size="large" fullWidth disabled={submitting} sx={{ mt: 0.5, py: 1.4, fontSize: 16 }}>
-          {submitting ? 'Creating account…' : 'Create Account'}
+          {submitting ? 'יוצר חשבון…' : 'יצירת חשבון'}
         </Button>
       </Box>
 
       <Typography sx={{ textAlign: 'center', mt: 2, fontSize: 14, color: 'text.secondary' }}>
-        Already have an account?{' '}
-        <Typography component={Link} to="/login" sx={{ color: 'primary.main', fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>Sign In</Typography>
+        כבר יש לך חשבון?{' '}
+        <Typography component={Link} to="/login" sx={{ color: 'primary.main', fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>התחברות</Typography>
       </Typography>
     </Box>
   );

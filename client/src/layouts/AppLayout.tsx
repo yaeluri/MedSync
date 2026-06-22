@@ -47,17 +47,17 @@ export default function AppLayout() {
 
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5, flex: 1 }}>
           {isDoctor ? (
-            <NavItem to="/patients" title="Patients" icon={<PeopleIcon fontSize="small" />} />
+            <NavItem to="/patients" title="מטופלים" icon={<PeopleIcon fontSize="small" />} />
           ) : (
             <>
-              <NavItem to="/dashboard" title="Home"      icon={<HomeIcon        fontSize="small" />} />
-              <NavItem to="/documents" title="Documents" icon={<DescriptionIcon fontSize="small" />} />
-              <NavItem to="/profile"   title="Profile"   icon={<PersonIcon      fontSize="small" />} />
+              <NavItem to="/dashboard" title="בית"      icon={<HomeIcon        fontSize="small" />} />
+              <NavItem to="/documents" title="מסמכים"   icon={<DescriptionIcon fontSize="small" />} />
+              <NavItem to="/profile"   title="פרופיל"   icon={<PersonIcon      fontSize="small" />} />
             </>
           )}
         </Box>
 
-        <Tooltip title="Log out" placement="right">
+        <Tooltip title="התנתק" placement="right">
           <IconButton
             onClick={() => { localStorage.removeItem('role'); navigate('/login'); }}
             sx={{ width: 40, height: 40, borderRadius: '10px', color: '#adb5bd', '&:hover': { background: '#f1f3f5', color: '#495057' } }}

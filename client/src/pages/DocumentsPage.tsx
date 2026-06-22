@@ -36,7 +36,7 @@ export default function DocumentsPage() {
 
   const patientName = patient
     ? `${patient.firstName} ${patient.lastName}`
-    : 'Patient';
+    : 'מטופל';
 
   return (
     <div className={styles.main}>
@@ -54,9 +54,9 @@ export default function DocumentsPage() {
             </button>
           )}
           <div className={styles.headerTitleBlock}>
-            <div className={styles.pageTitle}>Documents — {patientName}</div>
+            <div className={styles.pageTitle}>מסמכים — {patientName}</div>
             <div className={styles.pageSub}>
-              Upload &amp; summarize medical documents for this patient
+              העלה וסכם מסמכים רפואיים
             </div>
           </div>
         </div>
@@ -71,7 +71,7 @@ export default function DocumentsPage() {
 
       <div className={styles.body}>
         <div className={styles.leftColumn}>
-          <div className={styles.sectionTitle}>Upload Document</div>
+          <div className={styles.sectionTitle}>העלאת מסמך</div>
 
           <div
             className={styles.dropZone}
@@ -82,8 +82,8 @@ export default function DocumentsPage() {
               <polyline points="17 8 12 3 7 8"/>
               <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            <p className={styles.dropZoneText}>Click to upload or drag &amp; drop</p>
-            <p className={styles.dropZoneSub}>PDF or image files</p>
+            <p className={styles.dropZoneText}>לחץ להעלאה או גרור לכאן</p>
+            <p className={styles.dropZoneSub}>PDF או קבצי תמונה</p>
           </div>
 
           <input
@@ -110,10 +110,10 @@ export default function DocumentsPage() {
               onClick={upload}
               disabled={!file || isUploading}
             >
-              {isUploading ? 'Processing...' : 'Upload & Summarize'}
+              {isUploading ? 'מעבד...' : 'העלאה וסיכום'}
             </button>
             {(file || summary) && (
-              <button className={styles.clearBtn} onClick={reset}>Clear</button>
+              <button className={styles.clearBtn} onClick={reset}>נקה</button>
             )}
           </div>
 
@@ -125,8 +125,8 @@ export default function DocumentsPage() {
                   <line x1="12" y1="8" x2="12" y2="12"/>
                   <line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
-                <span className={styles.summaryTitle}>AI Summary</span>
-                {isDone && <span className={styles.summaryBadge}>Done</span>}
+                <span className={styles.summaryTitle}>סיכום בינה מלאכותית</span>
+                {isDone && <span className={styles.summaryBadge}>הושלם</span>}
                 {isDone && uploadedId && (
                   <button
                     className={styles.downloadBtn}
@@ -138,7 +138,7 @@ export default function DocumentsPage() {
                       <polyline points="7 10 12 15 17 10"/>
                       <line x1="12" y1="15" x2="12" y2="3"/>
                     </svg>
-                    Download
+                    הורדה
                   </button>
                 )}
               </div>
@@ -152,12 +152,12 @@ export default function DocumentsPage() {
         {/* ── Right panel ── */}
         <aside className={styles.rightPanel}>
           <div className={styles.panelTabBar}>
-            <span className={styles.panelTab}>AI Insights</span>
+            <span className={styles.panelTab}>תובנות בינה מלאכותית</span>
           </div>
 
           <div className={styles.panelContent}>
             {isUploading ? (
-              <p className={styles.processingText}>Analyzing document...</p>
+              <p className={styles.processingText}>מנתח מסמך...</p>
             ) : isDone ? (
               <div className={styles.insightCard}>
                 <div className={styles.insightIconWrap}>
@@ -168,21 +168,21 @@ export default function DocumentsPage() {
                   </svg>
                 </div>
                 <div>
-                  <div className={styles.insightTitle}>MedSync Insight</div>
+                  <div className={styles.insightTitle}>תובנה MedSync</div>
                   <div className={styles.insightText}>
-                    Document processed successfully. Review the summary on the left.
+                    המסמך עובד בהצלחה. ראה את הסיכום משמאל.
                   </div>
                 </div>
               </div>
             ) : (
-              <p className={styles.emptyState}>Upload a document to see AI insights here.</p>
+              <p className={styles.emptyState}>העלה מסמך לצפייה בתובנות.</p>
             )}
           </div>
 
           {/* Existing documents for this patient */}
           {patient && patient.documents && patient.documents.length > 0 && (
             <div className={styles.existingDocsList}>
-              <div className={styles.existingDocsTitle}>Uploaded Documents</div>
+              <div className={styles.existingDocsTitle}>מסמכים שהועלו</div>
               {patient.documents.map(d => (
                 <div key={d.id} className={styles.existingDocRow}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#868e96" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -192,7 +192,7 @@ export default function DocumentsPage() {
                   <span className={styles.existingDocName} title={d.name}>{d.name}</span>
                   <button
                     className={styles.existingDocDownload}
-                    title="Download"
+                    title="הורדה"
                     onClick={() => downloadDocument(d.id, d.name)}
                   >
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

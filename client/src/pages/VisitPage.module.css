@@ -85,6 +85,40 @@
   font-weight: 700;
 }
 
+.patientBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 28px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  flex-shrink: 0;
+}
+
+.patientBarName {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-right: 4px;
+}
+
+.patientBarChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #495057;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 20px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+
 .body {
   display: flex;
   flex: 1;
@@ -108,6 +142,31 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  position: relative;
+}
+
+.noteFormProcessing {
+  pointer-events: none;
+}
+
+.formOverlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(3px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 10;
+}
+
+.formOverlayText {
+  font-size: 15px;
+  font-weight: 600;
+  color: #3b5bdb;
 }
 
 .noteTitleRow {
@@ -206,8 +265,8 @@
 
 /* AI panel */
 .aiPanel {
-  width: 30%;
-  min-width: 260px;
+  width: 40%;
+  min-width: 280px;
   flex-shrink: 0;
   border-left: 1px solid #e9ecef;
   background: #fff;

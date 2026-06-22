@@ -47,12 +47,12 @@ export default function PatientDashboardPage() {
             </button>
             <div className={styles.headerTitleBlock}>
               <div className={styles.pageTitle}>
-                {status === 'loading' ? 'Loading patient...' : 'Patient not found'}
+                {status === 'loading' ? 'טוען מטופל...' : 'מטופל לא נמצא'}
               </div>
               <div className={styles.pageSub}>
                 {status === 'loading'
-                  ? 'Fetching patient details'
-                  : 'The selected patient does not exist'}
+                  ? 'מייד נתוני המטופל'
+                  : 'המטופל הנבחר אינו קיים'}
               </div>
             </div>
           </div>
@@ -61,8 +61,8 @@ export default function PatientDashboardPage() {
           <div className={styles.container}>
             <div className={styles.emptyState}>
               {status === 'loading'
-                ? 'Please wait...'
-                : "We couldn't find that patient. Please return to the list."}
+                ? 'אנא המתן…'
+                : 'לא נמצא המטופל. חזור לרשימה.'}
             </div>
           </div>
         </div>
@@ -88,7 +88,7 @@ export default function PatientDashboardPage() {
           <div className={styles.headerTitleBlock}>
             <div className={styles.pageTitle}>{fullName}</div>
             <div className={styles.pageSub}>
-              ID: {patient.idNumber ?? patient.id.slice(0, 8).toUpperCase()} • {patient.age}yo • {patient.gender}
+              ת"ז: {patient.idNumber ?? patient.id.slice(0, 8).toUpperCase()} • גיל {patient.age} • {patient.gender === 'Male' ? 'זכר' : patient.gender === 'Female' ? 'נקבה' : patient.gender}
             </div>
           </div>
         </div>
@@ -108,7 +108,7 @@ export default function PatientDashboardPage() {
             <line x1="12" y1="16" x2="12" y2="12" />
             <line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
-          <span>Patient Context: {fullName}</span>
+          <span>הקשר מטופל: {fullName}</span>
         </div>
         {patient.allergy && (
           <div className={styles.allergyChip}>
@@ -117,7 +117,7 @@ export default function PatientDashboardPage() {
               <line x1="12" y1="9" x2="12" y2="13" />
               <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
-            Allergy: {patient.allergy}
+            אלרגיה: {patient.allergy}
           </div>
         )}
       </div>
@@ -127,19 +127,19 @@ export default function PatientDashboardPage() {
           {/* Quick info */}
           <div className={styles.infoGrid}>
             <div className={styles.infoCard}>
-              <div className={styles.infoLabel}>Date of Birth</div>
+              <div className={styles.infoLabel}>תאריך לידה</div>
               <div className={styles.infoValue}>{patient.dob}</div>
             </div>
             <div className={styles.infoCard}>
-              <div className={styles.infoLabel}>Phone</div>
+              <div className={styles.infoLabel}>טלפון</div>
               <div className={styles.infoValue}>{patient.phone}</div>
             </div>
             <div className={styles.infoCard}>
-              <div className={styles.infoLabel}>HMO</div>
+              <div className={styles.infoLabel}>קופת חולים</div>
               <div className={styles.infoValue}>{patient.hmo}</div>
             </div>
             <div className={styles.infoCard}>
-              <div className={styles.infoLabel}>Address</div>
+              <div className={styles.infoLabel}>כתובת</div>
               <div className={styles.infoValue}>{patient.address}</div>
             </div>
           </div>
@@ -155,7 +155,7 @@ export default function PatientDashboardPage() {
                     <circle cx="12" cy="12" r="3" />
                   </svg>
                 </div>
-                <div className={styles.overviewTitle}>AI Medical Overview</div>
+                <div className={styles.overviewTitle}>סיכום רפואי בבינה מלאכותית</div>
               </div>
               <button
                 className={styles.startBtn}
@@ -165,7 +165,7 @@ export default function PatientDashboardPage() {
                   <circle cx="12" cy="12" r="10" />
                   <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
                 </svg>
-                Start Visit
+                התחל ביקור
               </button>
             </div>
             <p className={styles.overviewText}>{patient.overview}</p>
@@ -175,10 +175,10 @@ export default function PatientDashboardPage() {
           <div className={styles.cols}>
             <div>
               <div className={styles.colHeader}>
-                <div className={styles.colTitle}>Recent Encounters</div>
+                <div className={styles.colTitle}>ביקורים אחרונים</div>
               </div>
               {patient.encounters.length === 0 ? (
-                <div className={styles.emptyState}>No prior encounters.</div>
+                <div className={styles.emptyState}>אין ביקורים קודמים.</div>
               ) : (
                 <div className={styles.encounterList}>
                   {patient.encounters.map((e, idx) => (
@@ -205,7 +205,12 @@ export default function PatientDashboardPage() {
                           </div>
                           <span>{e.doctor}</span>
                         </div>
-                        <span className={styles.encounterDate}>{e.date}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span className={styles.encounterDate}>{e.date}</span>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ced4da" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="9 18 15 12 9 6"/>
+                          </svg>
+                        </div>
                       </div>
                       <div className={styles.encounterMeta}>
                         {e.specialty} • {e.type}
@@ -221,7 +226,7 @@ export default function PatientDashboardPage() {
 
             <div>
               <div className={styles.colHeader}>
-                <div className={styles.colTitle}>Recent Documents</div>
+                <div className={styles.colTitle}>מסמכים רפואיים</div>
                 <button
                   className={styles.uploadLink}
                   onClick={() => navigate(`/patients/${patient.id}/documents`)}
@@ -231,11 +236,11 @@ export default function PatientDashboardPage() {
                     <polyline points="17 8 12 3 7 8" />
                     <line x1="12" y1="3" x2="12" y2="15" />
                   </svg>
-                  Upload Document
+                  העלאת מסמך
                 </button>
               </div>
               {patient.documents.length === 0 ? (
-                <div className={styles.emptyState}>No documents on file.</div>
+                <div className={styles.emptyState}>אין מסמכים.</div>
               ) : (
                 <div className={styles.docList}>
                   {patient.documents.map(d => (

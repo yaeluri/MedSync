@@ -123,9 +123,9 @@ export default function ProfilePage() {
         });
       }
       setEditing(false);
-      setToast({ severity: 'success', message: 'Profile updated.' });
+      setToast({ severity: 'success', message: 'פרופיל עודכן.' });
     } catch {
-      setToast({ severity: 'error', message: 'Failed to save changes.' });
+      setToast({ severity: 'error', message: 'שמירת שינויים נכשלה.' });
     } finally {
       setSaving(false);
     }
@@ -152,7 +152,7 @@ export default function ProfilePage() {
           <Box sx={{ flex: 1 }}>
             <Typography sx={{ fontSize: 20, fontWeight: 700, color: '#1a1a2e' }}>{profile.name}</Typography>
             <Chip
-              label={role === 'doctor' ? 'Doctor' : 'Patient'}
+              label={role === 'doctor' ? 'רופא' : 'מטופל'}
               size="small"
               sx={{ mt: 0.5, bgcolor: '#eef2ff', color: 'primary.main', fontWeight: 600 }}
             />
@@ -163,10 +163,10 @@ export default function ProfilePage() {
         <Box sx={{ bgcolor: '#fff', border: '1px solid #e9ecef', borderRadius: 3, p: 3, mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
             <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#868e96', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              Personal Information
+              פרטים אישיים
             </Typography>
             {!editing && (
-              <Tooltip title="Edit">
+              <Tooltip title="עריכה">
                 <IconButton onClick={handleEdit} size="small" sx={{ color: 'primary.main' }}>
                   <EditIcon fontSize="small" />
                 </IconButton>
@@ -174,13 +174,13 @@ export default function ProfilePage() {
             )}
           </Box>
 
-          <Row icon={<EmailIcon fontSize="small" />} label="Email" value={profile.email} />
+          <Row icon={<EmailIcon fontSize="small" />} label="אימייל" value={profile.email} />
           <Divider sx={{ my: 1.5 }} />
 
           {editing ? (
             <Stack spacing={2}>
               <TextField
-                label="Phone"
+                label="טלפון"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 size="small"
@@ -188,7 +188,7 @@ export default function ProfilePage() {
                 placeholder="+972 50-000-0000"
               />
               <TextField
-                label="Date of Birth"
+                label="תאריך לידה"
                 type="date"
                 value={birthDate}
                 onChange={e => setBirthDate(e.target.value)}
@@ -203,7 +203,7 @@ export default function ProfilePage() {
                   disabled={saving}
                   sx={{ borderRadius: 2, fontWeight: 600 }}
                 >
-                  {saving ? 'Saving…' : 'Save'}
+                  {saving ? 'שומר…' : 'שמור'}
                 </Button>
                 <Button
                   variant="outlined"
@@ -211,21 +211,21 @@ export default function ProfilePage() {
                   disabled={saving}
                   sx={{ borderRadius: 2, fontWeight: 600 }}
                 >
-                  Cancel
+                  ביטול
                 </Button>
               </Stack>
             </Stack>
           ) : (
             <>
-              <Row icon={<PhoneIcon fontSize="small" />} label="Phone" value={profile.phone} />
+              <Row icon={<PhoneIcon fontSize="small" />} label="טלפון" value={profile.phone} />
               <Divider sx={{ my: 1.5 }} />
-              <Row icon={<CakeIcon fontSize="small" />} label="Date of Birth" value={profile.dob} />
+              <Row icon={<CakeIcon fontSize="small" />} label="תאריך לידה" value={profile.dob} />
               {idNumber && (
                 <>
                   <Divider sx={{ my: 1.5 }} />
                   <Row
                     icon={<BadgeIcon fontSize="small" />}
-                    label={role === 'doctor' ? 'License Number' : 'ID Number'}
+                    label={role === 'doctor' ? 'מספר רישיון' : 'תעודת זהות'}
                     value={idNumber}
                   />
                 </>
@@ -241,7 +241,7 @@ export default function ProfilePage() {
           variant="outlined"
           sx={{ borderRadius: 2.5, fontWeight: 600 }}
         >
-          Log out
+          התנתק
         </Button>
       </Box>
 

@@ -26,7 +26,7 @@ const SUMMARY_SECTIONS: {
 }[] = [
   {
     key: 'patientComplaints',
-    label: 'Patient Complaints',
+    label: 'תלונות המטופל',
     icon: (
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -37,7 +37,7 @@ const SUMMARY_SECTIONS: {
   },
   {
     key: 'diagnosis',
-    label: 'Diagnosis',
+    label: 'אבחנה',
     icon: (
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
@@ -48,7 +48,7 @@ const SUMMARY_SECTIONS: {
   },
   {
     key: 'doctorsRecommendations',
-    label: "Doctor's Recommendations",
+    label: 'המלצות הרופא',
     icon: (
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M9 11l3 3L22 4"/>
@@ -81,7 +81,9 @@ export default function VisitPage() {
   // Live AI summary object from the server.
   const [liveSummary, setLiveSummary] = useState<VisitSummaryObject | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
+  const [isLoadingVisit, setIsLoadingVisit] = useState(false);
   const lastSummarizedRef = useRef<string>('');
+  const [patientInfo, setPatientInfo] = useState<{ name: string; phone?: string; idNumber?: string; dob?: string; hmo?: string; bloodType?: string } | null>(null);
 
   const isRecording = status === 'recording';
   const isProcessing = status === 'processing';
@@ -90,30 +92,55 @@ export default function VisitPage() {
   useEffect(() => {
     if (!visitId) return;
     let active = true;
+    setIsLoadingVisit(true);
     getVisit(visitId).then(v => {
       if (!active) return;
       // Only patients get a read-only view; doctors can edit past visits.
       setIsReadOnly(!!session?.patientId && !session?.caregiverId);
       setVisitDate(v.visitDate ? new Date(v.visitDate).toLocaleDateString() : null);
-      const text = v.summary?.summaryText ?? '';
+      const raw = v.summary?.summaryText ?? '';
+      // Normalise CRLF → LF before parsing.
+      const text = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
       // Parse the structured summary text back into fields.
       const extract = (label: string) => {
-        const re = new RegExp(`${label}:\n([\\s\\S]*?)(?=\\n\\n[^\\n]+:\\n|$)`);
+        const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = new RegExp(`${escaped}:\\n([\\s\\S]*?)(?=\\n\\n[^\\n]+:\\n|$)`);
         return re.exec(text)?.[1]?.trim() ?? '';
       };
       const complaints = extract('Patient Complaints');
-      const diag = v.diagnoses?.[0]?.diagnosisDescription ?? extract('Diagnosis');
+      const diag = extract('Diagnosis');
       const recs = extract("Doctor's Recommendations");
-      setSubjective(complaints);
+      // Fallback: if nothing was extracted but summaryText exists, put it all in subjective.
+      const fallbackSubjective = (!complaints && !diag && !recs && text) ? text : complaints;
+      setSubjective(fallbackSubjective);
       setDiagnosis(diag);
       setPlan(recs);
       // Reconstruct a summary object from the saved text for display
       setLiveSummary({
-        patientComplaints: complaints || 'Not documented.',
+        patientComplaints: fallbackSubjective || 'Not documented.',
         diagnosis: diag || 'Not documented.',
         doctorsRecommendations: recs || 'Not documented.',
       });
-    }).catch(() => {/* ignore — visit may have no summary */});
+      // Populate patient context bar
+      if (v.patient?.user) {
+        const u = v.patient.user;
+        const dob = u.birthDate ? new Date(u.birthDate).toLocaleDateString('en-GB') : undefined;
+        setPatientInfo({
+          name: u.fullName,
+          phone: u.phone,
+          idNumber: v.patient.idNumber,
+          dob,
+          hmo: v.patient.hmo,
+          bloodType: v.patient.bloodType,
+        });
+      }
+    }).catch((err: any) => {
+      if (!active) return;
+      const msg = err?.message || 'Failed to load visit data.';
+      setToast({ severity: 'error', message: `Load error: ${msg}` });
+    }).finally(() => {
+      if (active) setIsLoadingVisit(false);
+    });
     return () => { active = false; };
   }, [visitId]);
 
@@ -130,14 +157,14 @@ export default function VisitPage() {
     if (!patientId) {
       setToast({
         severity: 'warning',
-        message: 'Open a visit from a patient profile to save it.',
+        message: 'פתח ביקור מפרופיל מטופל כדי לשמור.',
       });
       return;
     }
     if (!session?.caregiverId) {
       setToast({
         severity: 'error',
-        message: 'Only signed-in doctors can save visits.',
+        message: 'רק רופאים מחוברים יכולים לשמור ביקור.',
       });
       return;
     }
@@ -146,18 +173,19 @@ export default function VisitPage() {
     if (!hasAnyContent) {
       setToast({
         severity: 'warning',
-        message: 'Add at least a subjective, diagnosis, or plan first.',
+        message: 'הוסף תלונה, אבחנה או המלצות לפני שמירה.',
       });
       return;
     }
 
     setSaving(true);
     try {
-      const visit = await createVisit({
+      // Re-use the existing visit if we opened one, otherwise create a new one.
+      const targetId = visitId ?? (await createVisit({
         patientId,
         caregiverId: session.caregiverId,
         visitDate: new Date().toISOString(),
-      });
+      })).id;
 
       const parts: string[] = [];
       if (subjective.trim()) parts.push(`Patient Complaints:\n${subjective.trim()}`);
@@ -166,27 +194,27 @@ export default function VisitPage() {
       const summaryText = parts.join('\n\n');
 
       if (summaryText) {
-        await upsertVisitSummary(visit.id, {
+        await upsertVisitSummary(targetId, {
           summaryText,
           visitType: transcript ? 'RECORDING' : 'MANUAL_INPUT',
         });
       }
 
       if (diagnosis.trim()) {
-        await addVisitDiagnosis(visit.id, {
+        await addVisitDiagnosis(targetId, {
           diagnosisCode: diagnosis.trim(),
           diagnosisDescription: diagnosis.trim(),
         });
       }
 
-      setToast({ severity: 'success', message: 'Visit saved.' });
+      setToast({ severity: 'success', message: 'ביקור נשמר.' });
       window.setTimeout(() => {
         navigate(`/patients/${patientId}`);
       }, 700);
     } catch (err: any) {
       setToast({
         severity: 'error',
-        message: err?.message || 'Failed to save visit.',
+        message: err?.message || 'שמירת ביקור נכשלה.',
       });
     } finally {
       setSaving(false);
@@ -223,7 +251,7 @@ export default function VisitPage() {
   useEffect(() => {
     if (status !== 'done') return;
     if (!transcript && !summary) {
-      setToast({ severity: 'error', message: 'Transcription failed. Please try again.' });
+      setToast({ severity: 'error', message: 'תמלול נכשל. נסה שנית.' });
       return;
     }
     if (transcript && !summary) {
@@ -265,12 +293,14 @@ export default function VisitPage() {
             </button>
             <div>
               <div className={styles.encounterTitle}>
-                {isReadOnly ? 'Past Encounter' : 'Active Encounter'}
+                {isReadOnly ? 'ביקור קודם' : 'ביקור פעיל'}
               </div>
               <div className={styles.encounterSub}>
-                {isReadOnly
-                  ? visitDate ?? 'View only'
-                  : isRecording ? 'Recording & Documenting...' : isProcessing ? 'Processing...' : 'Ready'}
+                {isLoadingVisit
+                  ? 'טוען...'
+                  : isReadOnly
+                  ? visitDate ?? 'צפייה בלבד'
+                  : isRecording ? 'מקליט ומתעד...' : isProcessing ? 'מעבד...' : 'מוכן'}
               </div>
             </div>
           </div>
@@ -283,18 +313,48 @@ export default function VisitPage() {
           </div>
         </header>
 
+        {/* Patient context bar */}
+        {patientInfo && (
+          <div className={styles.patientBar}>
+            <div className={styles.patientBarName}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+              {patientInfo.name}
+            </div>
+            {patientInfo.idNumber && <span className={styles.patientBarChip}>ID: {patientInfo.idNumber}</span>}
+            {patientInfo.phone && (
+              <span className={styles.patientBarChip}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 12.31 19.79 19.79 0 0 1 1.1 3.65 2 2 0 0 1 3.08 1.5h3a2 2 0 0 1 2 1.72c.13 1 .38 1.98.74 2.91a2 2 0 0 1-.45 2.11L7.09 9.5a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.93.36 1.91.61 2.91.74A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                {patientInfo.phone}
+              </span>
+            )}
+            {patientInfo.dob && <span className={styles.patientBarChip}>DOB: {patientInfo.dob}</span>}
+            {patientInfo.hmo && <span className={styles.patientBarChip}>HMO: {patientInfo.hmo}</span>}
+            {patientInfo.bloodType && <span className={styles.patientBarChip} style={{ background: '#fff5f5', color: '#e03131' }}>🩸 {patientInfo.bloodType}</span>}
+          </div>
+        )}
+
         {/* Body */}
         <div className={styles.body}>
           {/* ── Left: Visit Note ── */}
           <div className={styles.leftColumn}>
-            <div className={styles.noteForm}>
+            <div className={`${styles.noteForm} ${isProcessing ? styles.noteFormProcessing : ''}`}>
+              {isProcessing && (
+                <div className={styles.formOverlay}>
+                  <span className={styles.spinner} />
+                  <span className={styles.formOverlayText}>מתמלל שמע...</span>
+                </div>
+              )}
               <div className={styles.noteTitleRow}>
-                <span className={styles.noteLabel}>VISIT NOTE</span>
-                <span className={styles.draftBadge}>Draft</span>
+                <span className={styles.noteLabel}>רשומת ביקור</span>
+                <span className={styles.draftBadge}>טיוטא</span>
                 {isProcessing && (
                   <span className={styles.transcribingBadge}>
                     <span className={`${styles.spinner} ${styles.spinnerSm}`} />
-                    Transcribing...
+                    מתמלל...
                   </span>
                 )}
                 {!isReadOnly && <button className={styles.micBtn} onClick={handleRecord} title="Toggle recording">
@@ -308,32 +368,26 @@ export default function VisitPage() {
               </div>
 
               <div className={styles.field}>
-                <label className={styles.fieldLabel}>Patient Complaints</label>
+                <label className={styles.fieldLabel}>תלונות המטופל</label>
                 <div className={styles.fieldWrap}>
                   <textarea
                     className={styles.textarea}
-                    placeholder="Patient complaints and symptoms..."
+                    placeholder="תלונות ותסמינים..."
                     value={subjective}
                     onChange={e => setSubjective(e.target.value)}
                     rows={4}
                     disabled={isProcessing || isReadOnly}
                     readOnly={isReadOnly}
                   />
-                  {isProcessing && (
-                    <div className={styles.transcribingOverlay}>
-                      <span className={styles.spinner} />
-                      Transcribing audio...
-                    </div>
-                  )}
                 </div>
               </div>
 
               <div className={styles.field}>
-                <label className={styles.fieldLabel}>Diagnosis</label>
+                <label className={styles.fieldLabel}>אבחנה</label>
                 <input
                   className={styles.textInput}
                   type="text"
-                  placeholder="ICD-10 Code..."
+                  placeholder="קוד ICD-10..."
                   value={diagnosis}
                   onChange={e => setDiagnosis(e.target.value)}
                   disabled={isReadOnly}
@@ -342,10 +396,10 @@ export default function VisitPage() {
               </div>
 
               <div className={styles.field}>
-                <label className={styles.fieldLabel}>Doctor's Recommendations</label>
+                <label className={styles.fieldLabel}>המלצות הרופא</label>
                 <textarea
                   className={styles.textarea}
-                  placeholder="Treatment, medications, follow-up..."
+                  placeholder="טיפול, תרופות, מעקב..."
                   value={plan}
                   onChange={e => setPlan(e.target.value)}
                   rows={4}
@@ -363,7 +417,7 @@ export default function VisitPage() {
                   disabled={saving}
                   style={saving ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
                 >
-                  {saving ? 'Saving…' : 'Save & Sign'}
+                  {saving ? 'שומר…' : 'שמור ואשר'}
                 </button>
               </div>
             )}
@@ -372,12 +426,12 @@ export default function VisitPage() {
           {/* ── Right: AI Summary ── */}
           <aside className={styles.aiPanel}>
             <div className={styles.aiTabBar}>
-              <span className={styles.aiTab}>AI Summary</span>
+              <span className={styles.aiTab}>סיכום בינה מלאכותית</span>
             </div>
 
             <div className={styles.aiContent}>
               {isProcessing ? (
-                <p className={styles.processingText}>Analyzing visit...</p>
+                <p className={styles.processingText}>מנתח ביקור...</p>
               ) : (
                 <div className={styles.insightCard}>
                   <div className={styles.insightHeader}>
@@ -391,9 +445,9 @@ export default function VisitPage() {
                       )}
                     </div>
                     <div className={styles.insightTitle}>
-                      MedSync Insight
+                      תובנה MedSync
                       {isSummarizing && (
-                        <span className={styles.insightUpdating}> · updating…</span>
+                        <span className={styles.insightUpdating}> · מעדכן…</span>
                       )}
                     </div>
                   </div>
@@ -415,7 +469,7 @@ export default function VisitPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className={styles.emptyInsight}>Type or record a visit to generate an AI summary.</p>
+                    <p className={styles.emptyInsight}>רשום או הקלט ביקור כדי לקבל סיכום.</p>
                   )}
                 </div>
               )}
@@ -433,7 +487,7 @@ export default function VisitPage() {
                     <line x1="12" y1="19" x2="12" y2="23"/>
                     <line x1="8" y1="23" x2="16" y2="23"/>
                   </svg>
-                  {isRecording ? `Stop Recording  ${formatTime(timer)}` : 'Record Visit Audio'}
+                  {isRecording ? `עצור הקלטה  ${formatTime(timer)}` : 'הקלט שמע לביקור'}
                 </button>
               </div>
             )}
