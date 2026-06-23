@@ -16,21 +16,55 @@ export interface PatientDocument {
 
 export interface Patient {
   id: string;
+  userId: string;
   firstName: string;
   lastName: string;
+  fullName: string;
   age: number;
-  gender: 'Male' | 'Female';
+  gender: 'Male' | 'Female' | string;
   dob: string;
+  email: string;
   phone: string;
+  idNumber?: string;
   hmo: string;
+  bloodType?: string;
   address: string;
+  notes?: string;
   allergy?: string;
   overview: string;
   encounters: Encounter[];
   documents: PatientDocument[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type PatientSummary = Pick<
   Patient,
-  'id' | 'firstName' | 'lastName' | 'age' | 'gender'
+  'id' | 'idNumber' | 'firstName' | 'lastName' | 'age' | 'gender'
 >;
+
+export interface CreatePatientInput {
+  fullName: string;
+  email: string;
+  password: string;
+  idNumber?: string;
+  phone?: string;
+  birthDate?: string;
+  gender?: string;
+  hmo?: string;
+  bloodType?: string;
+  address?: string;
+  notes?: string;
+}
+
+export interface UpdatePatientInput {
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  birthDate?: string;
+  gender?: string;
+  hmo?: string;
+  bloodType?: string;
+  address?: string;
+  notes?: string;
+}

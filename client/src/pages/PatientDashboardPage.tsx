@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getPatientById, Patient } from '../api/patients';
+import { downloadDocument } from '../api/documents';
+import PageHeader from '../components/PageHeader';
 import styles from './PatientDashboardPage.module.css';
 
 export default function PatientDashboardPage() {
@@ -31,35 +33,17 @@ export default function PatientDashboardPage() {
   if (status !== 'done' || !patient) {
     return (
       <div className={styles.main}>
-        <header className={styles.header}>
-          <div className={styles.headerLeft}>
-            <button
-              className={styles.backBtn}
-              onClick={() => navigate('/patients')}
-              aria-label="Back to patients"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
-            <div className={styles.headerTitleBlock}>
-              <div className={styles.pageTitle}>
-                {status === 'loading' ? 'Loading patient...' : 'Patient not found'}
-              </div>
-              <div className={styles.pageSub}>
-                {status === 'loading'
-                  ? 'Fetching patient details'
-                  : 'The selected patient does not exist'}
-              </div>
-            </div>
-          </div>
-        </header>
+        <PageHeader
+          title={status === 'loading' ? 'טוען מטופל...' : 'מטופל לא נמצא'}
+          subtitle={status === 'loading' ? 'מייד נתוני המטופל' : 'המטופל הנבחר אינו קיים'}
+          onBack={() => navigate('/patients')}
+        />
         <div className={styles.body}>
           <div className={styles.container}>
             <div className={styles.emptyState}>
               {status === 'loading'
-                ? 'Please wait...'
-                : "We couldn't find that patient. Please return to the list."}
+                ? 'אנא המתן…'
+                : 'לא נמצא המטופל. חזור לרשימה.'}
             </div>
           </div>
         </div>
@@ -71,32 +55,11 @@ export default function PatientDashboardPage() {
 
   return (
     <div className={styles.main}>
-      <header className={styles.header}>
-        <div className={styles.headerLeft}>
-          <button
-            className={styles.backBtn}
-            onClick={() => navigate('/patients')}
-            aria-label="Back to patients"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-          <div className={styles.headerTitleBlock}>
-            <div className={styles.pageTitle}>{fullName}</div>
-            <div className={styles.pageSub}>
-              ID: {patient.id} • {patient.age}yo • {patient.gender}
-            </div>
-          </div>
-        </div>
-        <div className={styles.headerRight}>
-          <div className={styles.doctorInfo}>
-            <span className={styles.doctorName}>Dr. Rotem Philipp</span>
-            <span className={styles.doctorSpec}>Cardiology</span>
-          </div>
-          <div className={styles.avatar}>DR</div>
-        </div>
-      </header>
+      <PageHeader
+        title={fullName}
+        subtitle={`ת"ז: ${patient.idNumber ?? patient.id.slice(0, 8).toUpperCase()} • גיל ${patient.age} • ${patient.gender === 'Male' ? 'זכר' : patient.gender === 'Female' ? 'נקבה' : patient.gender}`}
+        onBack={() => navigate('/patients')}
+      />
 
       <div className={styles.contextBar}>
         <div className={styles.contextLeft}>
@@ -105,7 +68,7 @@ export default function PatientDashboardPage() {
             <line x1="12" y1="16" x2="12" y2="12" />
             <line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
-          <span>Patient Context: {fullName}</span>
+          <span>הקשר מטופל: {fullName}</span>
         </div>
         {patient.allergy && (
           <div className={styles.allergyChip}>
@@ -114,7 +77,7 @@ export default function PatientDashboardPage() {
               <line x1="12" y1="9" x2="12" y2="13" />
               <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
-            Allergy: {patient.allergy}
+            אלרגיה: {patient.allergy}
           </div>
         )}
       </div>
@@ -124,19 +87,19 @@ export default function PatientDashboardPage() {
           {/* Quick info */}
           <div className={styles.infoGrid}>
             <div className={styles.infoCard}>
-              <div className={styles.infoLabel}>Date of Birth</div>
+              <div className={styles.infoLabel}>תאריך לידה</div>
               <div className={styles.infoValue}>{patient.dob}</div>
             </div>
             <div className={styles.infoCard}>
-              <div className={styles.infoLabel}>Phone</div>
+              <div className={styles.infoLabel}>טלפון</div>
               <div className={styles.infoValue}>{patient.phone}</div>
             </div>
             <div className={styles.infoCard}>
-              <div className={styles.infoLabel}>HMO</div>
+              <div className={styles.infoLabel}>קופת חולים</div>
               <div className={styles.infoValue}>{patient.hmo}</div>
             </div>
             <div className={styles.infoCard}>
-              <div className={styles.infoLabel}>Address</div>
+              <div className={styles.infoLabel}>כתובת</div>
               <div className={styles.infoValue}>{patient.address}</div>
             </div>
           </div>
@@ -152,7 +115,7 @@ export default function PatientDashboardPage() {
                     <circle cx="12" cy="12" r="3" />
                   </svg>
                 </div>
-                <div className={styles.overviewTitle}>AI Medical Overview</div>
+                <div className={styles.overviewTitle}>סיכום רפואי בבינה מלאכותית</div>
               </div>
               <button
                 className={styles.startBtn}
@@ -162,7 +125,7 @@ export default function PatientDashboardPage() {
                   <circle cx="12" cy="12" r="10" />
                   <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
                 </svg>
-                Start Visit
+                התחל ביקור
               </button>
             </div>
             <p className={styles.overviewText}>{patient.overview}</p>
@@ -171,13 +134,22 @@ export default function PatientDashboardPage() {
           {/* Two columns */}
           <div className={styles.cols}>
             <div>
-              <div className={styles.colTitle}>Recent Encounters</div>
+              <div className={styles.colHeader}>
+                <div className={styles.colTitle}>ביקורים אחרונים</div>
+              </div>
               {patient.encounters.length === 0 ? (
-                <div className={styles.emptyState}>No prior encounters.</div>
+                <div className={styles.emptyState}>אין ביקורים קודמים.</div>
               ) : (
                 <div className={styles.encounterList}>
                   {patient.encounters.map((e, idx) => (
-                    <div key={e.id} className={styles.encounter}>
+                    <div
+                      key={e.id}
+                      className={styles.encounter}
+                      onClick={() => navigate(`/patients/${patient.id}/visits/${e.id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={ev => ev.key === 'Enter' && navigate(`/patients/${patient.id}/visits/${e.id}`)}
+                    >
                       <div className={styles.encounterHead}>
                         <div className={styles.encounterDoctor}>
                           <div
@@ -193,7 +165,12 @@ export default function PatientDashboardPage() {
                           </div>
                           <span>{e.doctor}</span>
                         </div>
-                        <span className={styles.encounterDate}>{e.date}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span className={styles.encounterDate}>{e.date}</span>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ced4da" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="9 18 15 12 9 6"/>
+                          </svg>
+                        </div>
                       </div>
                       <div className={styles.encounterMeta}>
                         {e.specialty} • {e.type}
@@ -209,7 +186,7 @@ export default function PatientDashboardPage() {
 
             <div>
               <div className={styles.colHeader}>
-                <div className={styles.colTitle}>Recent Documents</div>
+                <div className={styles.colTitle}>מסמכים רפואיים</div>
                 <button
                   className={styles.uploadLink}
                   onClick={() => navigate(`/patients/${patient.id}/documents`)}
@@ -219,11 +196,11 @@ export default function PatientDashboardPage() {
                     <polyline points="17 8 12 3 7 8" />
                     <line x1="12" y1="3" x2="12" y2="15" />
                   </svg>
-                  Upload Document
+                  העלאת מסמך
                 </button>
               </div>
               {patient.documents.length === 0 ? (
-                <div className={styles.emptyState}>No documents on file.</div>
+                <div className={styles.emptyState}>אין מסמכים.</div>
               ) : (
                 <div className={styles.docList}>
                   {patient.documents.map(d => (
@@ -235,12 +212,23 @@ export default function PatientDashboardPage() {
                           <polyline points="9 15 11 17 15 13" />
                         </svg>
                       </div>
-                      <div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
                         <div className={styles.docName}>{d.name}</div>
                         <div className={styles.docMeta}>
                           {d.date} • {d.kind}
                         </div>
                       </div>
+                      <button
+                        title="Download"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#868e96', padding: '4px', display: 'flex', alignItems: 'center' }}
+                        onClick={() => downloadDocument(d.id, d.name)}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                          <polyline points="7 10 12 15 17 10"/>
+                          <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                      </button>
                     </div>
                   ))}
                 </div>

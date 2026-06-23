@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPatients, PatientSummary } from '../api/patients';
+import PageHeader from '../components/PageHeader';
 import styles from './PatientsListPage.module.css';
 
 const initials = (first: string, last: string) =>
@@ -33,27 +34,17 @@ export default function PatientsListPage() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return patients;
-    return patients.filter(p =>
-      `${p.firstName} ${p.lastName}`.toLowerCase().includes(q) ||
-      p.id.includes(q),
-    );
+    return patients.filter(p => {
+      return (
+        `${p.firstName} ${p.lastName}`.toLowerCase().includes(q) ||
+        (p.idNumber ?? '').toLowerCase().includes(q)
+      );
+    });
   }, [query, patients]);
 
   return (
     <div className={styles.main}>
-      <header className={styles.header}>
-        <div className={styles.headerLeft}>
-          <div className={styles.pageTitle}>Patient List</div>
-          <div className={styles.pageSub}>Select a patient to begin</div>
-        </div>
-        <div className={styles.headerRight}>
-          <div className={styles.doctorInfo}>
-            <span className={styles.doctorName}>Dr. Rotem Philipp</span>
-            <span className={styles.doctorSpec}>Cardiology</span>
-          </div>
-          <div className={styles.avatar}>DR</div>
-        </div>
-      </header>
+      <PageHeader title="רשימת מטופלים" subtitle="בחר מטופל להתחלת הטיפול" />
 
       <div className={styles.body}>
         <div className={styles.container}>
@@ -75,18 +66,18 @@ export default function PatientsListPage() {
             <input
               type="text"
               className={styles.searchInput}
-              placeholder="Search by name or ID..."
+              placeholder="חיפוש לפי שם או תעודת זהות..."
               value={query}
               onChange={e => setQuery(e.target.value)}
             />
           </div>
 
           {status === 'loading' ? (
-            <div className={styles.empty}>Loading patients...</div>
+            <div className={styles.empty}>טוען מטופלים...</div>
           ) : status === 'error' ? (
-            <div className={styles.empty}>Failed to load patients.</div>
+            <div className={styles.empty}>טעינת המטופלים נכשלה.</div>
           ) : filtered.length === 0 ? (
-            <div className={styles.empty}>No patients match your search.</div>
+            <div className={styles.empty}>לא נמצאו מטופלים תואמים.</div>
           ) : (
             <div className={styles.list}>
               {filtered.map(p => (
@@ -103,17 +94,6 @@ export default function PatientsListPage() {
                     }
                   }}
                 >
-                  <div className={styles.avatarLg}>
-                    {initials(p.firstName, p.lastName)}
-                  </div>
-                  <div className={styles.cardBody}>
-                    <div className={styles.cardName}>
-                      {p.firstName} {p.lastName}
-                    </div>
-                    <div className={styles.cardMeta}>
-                      ID: {p.id} • {p.age} Years • {p.gender}
-                    </div>
-                  </div>
                   <svg
                     className={styles.chevron}
                     width="20"
@@ -125,8 +105,21 @@ export default function PatientsListPage() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
-                    <polyline points="9 18 15 12 9 6" />
+                    <polyline points="15 18 9 12 15 6" />
                   </svg>
+                  <div className={styles.cardBody}>
+                    <div className={styles.cardName}>
+                      {p.firstName} {p.lastName}
+                    </div>
+                    <div className={styles.cardMeta}>
+                      ת"ז: {p.idNumber ?? p.id.slice(0, 8).toUpperCase()}
+                      {p.age > 0 ? ` • גיל ${p.age}` : ''}
+                      {p.gender ? ` • ${p.gender === 'Male' ? 'זכר' : p.gender === 'Female' ? 'נקבה' : p.gender}` : ''}
+                    </div>
+                  </div>
+                  <div className={styles.avatarLg}>
+                    {initials(p.firstName, p.lastName)}
+                  </div>
                 </div>
               ))}
             </div>

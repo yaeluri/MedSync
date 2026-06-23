@@ -3,12 +3,18 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   HttpException,
   InternalServerErrorException,
+  NotFoundException,
+  Param,
+  ParseUUIDPipe,
   Post,
+  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentsService } from './documents.service';
 
@@ -34,6 +40,7 @@ export class DocumentsController {
   async upload(
     @UploadedFile() file: Express.Multer.File,
     @Body('patientId') patientId?: string,
+    @Body('uploadedByUserId') uploadedByUserId?: string,
   ) {
     if (!file || !file.buffer) {
       throw new BadRequestException('A document file is required');
@@ -50,16 +57,35 @@ export class DocumentsController {
     }
 
     try {
+      // Multer decodes multipart filenames as Latin-1; re-encode as UTF-8 for Hebrew/non-ASCII names
+      const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
       const result = await this.documentsService.processDocument(
         file.buffer,
         file.mimetype,
-        file.originalname,
+        originalName,
+        patientId,
+        uploadedByUserId,
       );
-      return { ...result, patientId: patientId ?? null };
+      return result;
     } catch (err) {
       if (err instanceof HttpException) throw err;
       const detail = err instanceof Error ? err.message : String(err);
       throw new InternalServerErrorException(detail);
     }
+  }
+
+  @Get(':id/download')
+  async download(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Res() res: Response,
+  ) {
+    const file = await this.documentsService.getFileData(id);
+    if (!file) throw new NotFoundException('File not found');
+    res.setHeader('Content-Type', file.mimeType);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${encodeURIComponent(file.fileName)}"`,
+    );
+    res.send(file.buffer);
   }
 }

@@ -1,26 +1,166 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Avatar, Button, Divider, Chip } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Avatar,
+  Button,
+  Divider,
+  Chip,
+  TextField,
+  Stack,
+  IconButton,
+  Tooltip,
+  Snackbar,
+  Alert,
+} from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import CakeIcon from '@mui/icons-material/Cake';
 import BadgeIcon from '@mui/icons-material/Badge';
+import HomeIcon from '@mui/icons-material/Home';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import EditIcon from '@mui/icons-material/Edit';
 import LogoutIcon from '@mui/icons-material/Logout';
+import { clearSession, loadSession, saveSession } from '../api/auth';
+import { getUser, updateUser, User } from '../api/users';
+import { getCaregiver } from '../api/caregivers';
+import { getPatientById, updatePatient } from '../api/patients';
+
+function initialsFromName(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(s => s.charAt(0).toUpperCase())
+    .join('');
+}
+
+function toDateInput(value?: string | null): string {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toISOString().slice(0, 10);
+}
+
+function formatDob(value?: string | null): string {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const role = (localStorage.getItem('role') as 'patient' | 'doctor' | null) ?? 'patient';
+  const session = loadSession();
+  const role = (session?.role as 'patient' | 'doctor' | undefined) ?? 'patient';
+  const [user, setUser] = useState<User | null>(null);
+  const [idNumber, setIdNumber] = useState<string>('');
+  const [editing, setEditing] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [hmo, setHmo] = useState('');
+  const [address, setAddress] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<
+    { severity: 'success' | 'error'; message: string } | null
+  >(null);
+
+  useEffect(() => {
+    if (!session?.userId) return;
+    getUser(session.userId)
+      .then(u => {
+        setUser(u);
+        setPhone(u.phone ?? '');
+        setBirthDate(toDateInput(u.birthDate));
+      })
+      .catch(() => setUser(null));
+  }, [session?.userId]);
+
+  useEffect(() => {
+    if (session?.caregiverId) {
+      getCaregiver(session.caregiverId)
+        .then(c => setIdNumber(c.licenseNumber ?? ''))
+        .catch(() => setIdNumber(''));
+    } else {
+      setIdNumber('');
+    }
+  }, [session?.caregiverId]);
+
+  useEffect(() => {
+    if (session?.patientId) {
+      getPatientById(session.patientId)
+        .then(p => {
+          setHmo(p.hmo ?? '');
+          setAddress(p.address ?? '');
+        })
+        .catch(() => {
+          setHmo('');
+          setAddress('');
+        });
+    }
+  }, [session?.patientId]);
 
   const profile = {
-    name: 'Israel Israeli',
-    initials: 'II',
-    email: 'israel.israeli@example.com',
-    phone: '+972 50-123-4567',
-    dob: 'May 14, 1980',
-    idNumber: '123456789',
+    name: user?.fullName ?? session?.fullName ?? 'Guest',
+    email: user?.email ?? session?.email ?? '',
+    phone: user?.phone ?? '—',
+    dob: formatDob(user?.birthDate),
+  };
+  const initials = initialsFromName(profile.name);
+
+  const isPatient = !!session?.patientId;
+
+  const handleEdit = () => {
+    setPhone(user?.phone ?? '');
+    setBirthDate(toDateInput(user?.birthDate));
+    setEditing(true);
+  };
+
+  const handleCancel = () => {
+    setEditing(false);
+    setPhone(user?.phone ?? '');
+    setBirthDate(toDateInput(user?.birthDate));
+  };
+
+  const handleSave = async () => {
+    if (!session?.userId) return;
+    setSaving(true);
+    try {
+      const updated = await updateUser(session.userId, {
+        phone: phone.trim() || undefined,
+        birthDate: birthDate || undefined,
+      });
+      setUser(updated);
+      if (isPatient && session?.patientId) {
+        await updatePatient(session.patientId, {
+          phone: phone.trim() || undefined,
+          hmo: hmo.trim() || undefined,
+          address: address.trim() || undefined,
+        });
+      }
+      if (session) {
+        saveSession({
+          ...session,
+          fullName: updated.fullName,
+          email: updated.email,
+        });
+      }
+      setEditing(false);
+      setToast({ severity: 'success', message: 'פרופיל עודכן.' });
+    } catch {
+      setToast({ severity: 'error', message: 'שמירת שינויים נכשלה.' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('role');
+    clearSession();
     navigate('/login');
   };
 
@@ -35,12 +175,12 @@ export default function ProfilePage() {
           }}
         >
           <Avatar sx={{ width: 72, height: 72, bgcolor: 'primary.main', fontSize: 24, fontWeight: 700 }}>
-            {profile.initials}
+            {initials || '?'}
           </Avatar>
           <Box sx={{ flex: 1 }}>
             <Typography sx={{ fontSize: 20, fontWeight: 700, color: '#1a1a2e' }}>{profile.name}</Typography>
             <Chip
-              label={role === 'doctor' ? 'Doctor' : 'Patient'}
+              label={role === 'doctor' ? 'רופא' : 'מטופל'}
               size="small"
               sx={{ mt: 0.5, bgcolor: '#eef2ff', color: 'primary.main', fontWeight: 600 }}
             />
@@ -49,17 +189,103 @@ export default function ProfilePage() {
 
         {/* Details card */}
         <Box sx={{ bgcolor: '#fff', border: '1px solid #e9ecef', borderRadius: 3, p: 3, mb: 3 }}>
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#868e96', letterSpacing: '0.06em', textTransform: 'uppercase', mb: 2 }}>
-            Personal Information
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#868e96', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              פרטים אישיים
+            </Typography>
+            {!editing && (
+              <Tooltip title="עריכה">
+                <IconButton onClick={handleEdit} size="small" sx={{ color: 'primary.main' }}>
+                  <EditIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
 
-          <Row icon={<EmailIcon fontSize="small" />} label="Email" value={profile.email} />
+          <Row icon={<EmailIcon fontSize="small" />} label="אימייל" value={profile.email} />
           <Divider sx={{ my: 1.5 }} />
-          <Row icon={<PhoneIcon fontSize="small" />} label="Phone" value={profile.phone} />
-          <Divider sx={{ my: 1.5 }} />
-          <Row icon={<CakeIcon fontSize="small" />} label="Date of Birth" value={profile.dob} />
-          <Divider sx={{ my: 1.5 }} />
-          <Row icon={<BadgeIcon fontSize="small" />} label="ID Number" value={profile.idNumber} />
+
+          {editing ? (
+            <Stack spacing={2}>
+              <TextField
+                label="טלפון"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                size="small"
+                fullWidth
+                placeholder="+972 50-000-0000"
+              />
+              <TextField
+                label="תאריך לידה"
+                type="date"
+                value={birthDate}
+                onChange={e => setBirthDate(e.target.value)}
+                size="small"
+                fullWidth
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
+              {isPatient && (
+                <>
+                  <TextField
+                    label="קופת חולים"
+                    value={hmo}
+                    onChange={e => setHmo(e.target.value)}
+                    size="small"
+                    fullWidth
+                  />
+                  <TextField
+                    label="כתובת"
+                    value={address}
+                    onChange={e => setAddress(e.target.value)}
+                    size="small"
+                    fullWidth
+                  />
+                </>
+              )}
+              <Stack direction="row" spacing={1.5}>
+                <Button
+                  variant="contained"
+                  onClick={handleSave}
+                  disabled={saving}
+                  sx={{ borderRadius: 2, fontWeight: 600 }}
+                >
+                  {saving ? 'שומר…' : 'שמור'}
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={handleCancel}
+                  disabled={saving}
+                  sx={{ borderRadius: 2, fontWeight: 600 }}
+                >
+                  ביטול
+                </Button>
+              </Stack>
+            </Stack>
+          ) : (
+            <>
+              <Row icon={<PhoneIcon fontSize="small" />} label="טלפון" value={profile.phone} />
+              <Divider sx={{ my: 1.5 }} />
+              <Row icon={<CakeIcon fontSize="small" />} label="תאריך לידה" value={profile.dob} />
+              {idNumber && (
+                <>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Row
+                    icon={<BadgeIcon fontSize="small" />}
+                    label={role === 'doctor' ? 'מספר רישיון' : 'תעודת זהות'}
+                    value={idNumber}
+                  />
+                </>
+              )}
+              {isPatient && (
+                <>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Row icon={<LocalHospitalIcon fontSize="small" />} label="קופת חולים" value={hmo || '—'} />
+                  <Divider sx={{ my: 1.5 }} />
+                  <Row icon={<HomeIcon fontSize="small" />} label="כתובת" value={address || '—'} />
+                </>
+              )}
+            </>
+          )}
         </Box>
 
         <Button
@@ -69,9 +295,25 @@ export default function ProfilePage() {
           variant="outlined"
           sx={{ borderRadius: 2.5, fontWeight: 600 }}
         >
-          Log out
+          התנתק
         </Button>
       </Box>
+
+      <Snackbar
+        open={!!toast}
+        autoHideDuration={3500}
+        onClose={() => setToast(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          severity={toast?.severity}
+          variant="filled"
+          onClose={() => setToast(null)}
+          sx={{ borderRadius: 2 }}
+        >
+          {toast?.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

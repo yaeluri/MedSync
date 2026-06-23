@@ -1,19 +1,149 @@
-import { apiRequest } from './client';
+import {
+  apiDelete,
+  apiGet,
+  apiPatch,
+  apiPost,
+  apiPut,
+  apiRequest,
+} from './client';
 
-export function transcribeAudio(audioBlob: Blob) {
+export type RecordingStatus =
+  | 'PENDING'
+  | 'RECORDING'
+  | 'PROCESSING'
+  | 'TRANSCRIBED'
+  | 'AI_PROCESSING'
+  | 'AI_SUCCESS'
+  | 'AI_PARTIAL_SUCCESS'
+  | 'FAILED';
+
+export type VisitSummaryType = 'RECORDING' | 'MANUAL_INPUT';
+
+export interface Visit {
+  id: string;
+  patientId: string;
+  caregiverId: string;
+  slotId?: string;
+  visitDate: string;
+  bloodPressure?: string;
+  pulse?: string;
+  bodyTemp?: string;
+  createdAt: string;
+  updatedAt: string;
+  recording?: {
+    id: string;
+    visitId: string;
+    status: RecordingStatus;
+    audioUrl: string;
+    transcriptText?: string;
+  };
+  summary?: {
+    id: string;
+    visitId: string;
+    summaryText: string;
+    visitType: VisitSummaryType;
+  };
+  patient?: {
+    id: string;
+    idNumber?: string;
+    hmo?: string;
+    bloodType?: string;
+    user?: {
+      fullName: string;
+      email: string;
+      phone?: string;
+      birthDate?: string;
+      gender?: string;
+    };
+  };
+  caregiver?: any;
+  diagnoses?: any[];
+  medicines?: any[];
+}
+
+export interface CreateVisitInput {
+  patientId: string;
+  caregiverId: string;
+  slotId?: string;
+  visitDate: string;
+  bloodPressure?: string;
+  pulse?: string;
+  bodyTemp?: string;
+}
+
+export interface VisitRecordingInput {
+  status?: RecordingStatus;
+  audioUrl: string;
+  transcriptText?: string;
+}
+
+export interface VisitSummaryInput {
+  summaryText: string;
+  visitType: VisitSummaryType;
+}
+
+export interface VisitDiagnosisInput {
+  diagnosisId?: string;
+  diagnosisCode?: string;
+  diagnosisDescription?: string;
+  note?: string;
+}
+
+export interface VisitMedicineInput {
+  medicineId?: string;
+  medicineName?: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+  instructions?: string;
+}
+
+// ── AI endpoints ──────────────────────────────────
+export interface VisitSummaryObject {
+  patientComplaints: string;
+  diagnosis: string;
+  doctorsRecommendations: string;
+}
+
+export function transcribeAudio(audioBlob: Blob): Promise<{ transcript: string; summary: VisitSummaryObject }> {
   const formData = new FormData();
   formData.append('audio', audioBlob, 'recording.webm');
-
   return apiRequest('/api/visits/transcribe', {
     method: 'POST',
     body: formData,
   });
 }
 
-export function summarizeText(text: string): Promise<{ summary: string }> {
-  return apiRequest('/api/visits/summarize', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text }),
-  });
+export function summarizeText(text: string): Promise<{ summary: VisitSummaryObject }> {
+  return apiPost<{ summary: VisitSummaryObject }>('/api/visits/summarize', { text });
 }
+
+// ── CRUD endpoints ────────────────────────────────
+export const getVisits = (params: { patientId?: string; caregiverId?: string } = {}) => {
+  const qs = new URLSearchParams();
+  if (params.patientId) qs.set('patientId', params.patientId);
+  if (params.caregiverId) qs.set('caregiverId', params.caregiverId);
+  const s = qs.toString();
+  return apiGet<Visit[]>(`/api/visits-records${s ? `?${s}` : ''}`);
+};
+export const getVisit = (id: string) =>
+  apiGet<Visit>(`/api/visits-records/${id}`);
+export const createVisit = (input: CreateVisitInput) =>
+  apiPost<Visit>('/api/visits-records', input);
+export const updateVisit = (id: string, input: Partial<CreateVisitInput>) =>
+  apiPatch<Visit>(`/api/visits-records/${id}`, input);
+export const deleteVisit = (id: string) =>
+  apiDelete<void>(`/api/visits-records/${id}`);
+
+export const upsertVisitRecording = (id: string, input: VisitRecordingInput) =>
+  apiPut(`/api/visits-records/${id}/recording`, input);
+export const upsertVisitSummary = (id: string, input: VisitSummaryInput) =>
+  apiPut(`/api/visits-records/${id}/summary`, input);
+export const addVisitDiagnosis = (id: string, input: VisitDiagnosisInput) =>
+  apiPost(`/api/visits-records/${id}/diagnoses`, input);
+export const removeVisitDiagnosis = (id: string, diagnosisId: string) =>
+  apiDelete<void>(`/api/visits-records/${id}/diagnoses/${diagnosisId}`);
+export const addVisitMedicine = (id: string, input: VisitMedicineInput) =>
+  apiPost(`/api/visits-records/${id}/medicines`, input);
+export const removeVisitMedicine = (id: string, medicineId: string) =>
+  apiDelete<void>(`/api/visits-records/${id}/medicines/${medicineId}`);
