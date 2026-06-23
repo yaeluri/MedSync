@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user/userEntity';
 import { hashPassword, isHashedPassword } from '../common/password.util';
+import { RolesService } from '../roles/roles.service';
 
 export interface CreateUserInput {
   roleId?: string;
@@ -36,6 +37,7 @@ export type SafeUser = Omit<User, 'password'>;
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly repo: Repository<User>,
+    private readonly roles: RolesService,
   ) {}
 
   private strip(user: User): SafeUser {
@@ -84,8 +86,10 @@ export class UsersService {
       ? input.password
       : hashPassword(input.password);
 
+    const roleId = await this.resolveRoleId(input);
+
     const user = this.repo.create({
-      roleId: input.roleId,
+      roleId,
       fullName: input.fullName,
       email,
       password,
@@ -94,6 +98,16 @@ export class UsersService {
       gender: input.gender,
     });
     return this.repo.save(user);
+  }
+
+  private async resolveRoleId(input: CreateUserInput): Promise<string> {
+    if (input.roleId) {
+      const role = await this.roles.findOne(input.roleId);
+      return role.id;
+    }
+    const name = input.roleName?.trim() || 'patient';
+    const role = await this.roles.getOrCreate(name);
+    return role.id;
   }
 
   async update(id: string, input: UpdateUserInput): Promise<SafeUser> {

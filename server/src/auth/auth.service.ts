@@ -12,6 +12,7 @@ import { hashPassword, verifyPassword } from '../common/password.util';
 import { RolesService } from '../roles/roles.service';
 
 export interface RegisterPatientInput {
+  role?: string;
   fullName: string;
   email: string;
   password: string;
@@ -25,6 +26,7 @@ export interface RegisterPatientInput {
 }
 
 export interface RegisterDoctorInput {
+  role?: string;
   fullName: string;
   email: string;
   password: string;
@@ -68,7 +70,10 @@ export class AuthService {
     const existing = await this.users.findOne({ where: { email } });
     if (existing) throw new BadRequestException('Email already in use');
 
-    const role = await this.roles.getOrCreate('patient', 'Patient role');
+    const role = await this.roles.getOrCreate(
+      input.role === 'patient' ? input.role : 'patient',
+      'Patient role',
+    );
 
     return this.dataSource.transaction(async (manager) => {
       const user = manager.getRepository(User).create({
@@ -95,7 +100,7 @@ export class AuthService {
         userId: savedUser.id,
         email: savedUser.email,
         fullName: savedUser.fullName,
-        role: 'patient',
+        role: role.name,
         patientId: savedPatient.id,
       };
     });
@@ -114,7 +119,10 @@ export class AuthService {
     const existing = await this.users.findOne({ where: { email } });
     if (existing) throw new BadRequestException('Email already in use');
 
-    const role = await this.roles.getOrCreate('doctor', 'Doctor role');
+    const role = await this.roles.getOrCreate(
+      input.role === 'doctor' ? input.role : 'doctor',
+      'Doctor role',
+    );
 
     return this.dataSource.transaction(async (manager) => {
       const user = manager.getRepository(User).create({
@@ -140,7 +148,7 @@ export class AuthService {
         userId: savedUser.id,
         email: savedUser.email,
         fullName: savedUser.fullName,
-        role: 'doctor',
+        role: role.name,
         caregiverId: savedCaregiver.id,
       };
     });

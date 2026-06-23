@@ -4,6 +4,7 @@ import { Box, Typography, TextField, Button, Chip, Alert } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
 import { login, saveSession } from "../api/auth";
+import { homeForRole } from "../components/RequireRole";
 
 const roleConfig = {
   patient: {
@@ -43,8 +44,16 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const result = await login(email, password);
+      if (role === "therapist" && result.role !== "doctor") {
+        setError("אין לך הרשאות מטפל");
+        return;
+      }
+      if (role === "patient" && result.role !== "patient") {
+        setError("אין לך הרשאות מטופל");
+        return;
+      }
       saveSession(result);
-      navigate(result.role === "patient" ? "/dashboard" : "/patients");
+      navigate(homeForRole(result.role));
     } catch (err) {
       setError(err instanceof Error ? err.message : "התחברות נכשלה");
     } finally {
