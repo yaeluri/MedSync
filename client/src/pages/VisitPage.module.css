@@ -94,6 +94,8 @@
   background: #f8f9fa;
   border-bottom: 1px solid #e9ecef;
   flex-shrink: 0;
+  justify-content: flex-start;
+  flex-direction: row-reverse;
 }
 
 .patientBarName {
@@ -130,8 +132,10 @@
   flex-direction: column;
   flex: 1;
   overflow: auto;
+  order: 2;
   padding: 24px;
   gap: 16px;
+  
 }
 
 .noteForm {
@@ -173,6 +177,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-direction: row-reverse;
 }
 
 .noteLabel {
@@ -182,6 +187,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   flex: 1;
+  text-align: end;
 }
 
 .draftBadge {
@@ -217,6 +223,7 @@
   font-size: 12px;
   font-weight: 600;
   color: #495057;
+  text-align: right;
 }
 
 .textarea {
@@ -227,6 +234,8 @@
   font-family: inherit;
   color: #1a1a2e;
   resize: vertical;
+  direction: rtl;
+  text-align: right;
   outline: none;
   transition: border-color 0.15s;
 }
@@ -239,6 +248,8 @@
   font-size: 14px;
   font-family: inherit;
   color: #1a1a2e;
+  direction: rtl;
+  text-align: right;
   outline: none;
   transition: border-color 0.15s;
 }
@@ -246,7 +257,7 @@
 
 .saveBar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   padding: 0 4px;
 }
 
@@ -268,14 +279,16 @@
   width: 40%;
   min-width: 280px;
   flex-shrink: 0;
-  border-left: 1px solid #e9ecef;
+  border-right: 1px solid #e9ecef;
   background: #fff;
   display: flex;
   flex-direction: column;
+  order: 1;
 }
 
 .aiTabBar {
   display: flex;
+  justify-content: flex-end;
   padding: 0 20px;
   border-bottom: 1px solid #e9ecef;
   height: 48px;
@@ -318,6 +331,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  justify-content: flex-start;
+  flex-direction: row-reverse;
 }
 
 .insightIconWrap {
@@ -371,6 +386,8 @@
 .summarySectionHeader {
   display: flex;
   align-items: center;
+  flex-direction: row-reverse;
+  justify-content: flex-start;
   gap: 8px;
 }
 
@@ -396,7 +413,9 @@
   color: #495057;
   line-height: 1.55;
   margin: 0;
-  padding-left: 30px;
+  text-align: right;
+  direction: rtl;
+  padding-right: 30px;
 }
 
 .emptyInsight {
