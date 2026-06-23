@@ -1,34 +1,18 @@
-import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getPatientById, Patient } from '../api/patients';
 import { downloadDocument } from '../api/documents';
+import { useAsyncData } from '../hooks/useAsyncData';
 import PageHeader from '../components/PageHeader';
+import ClickableCard from '../components/ClickableCard';
 import styles from './PatientDashboardPage.module.css';
 
 export default function PatientDashboardPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [patient, setPatient] = useState<Patient | null>(null);
-  const [status, setStatus] = useState<'loading' | 'done' | 'error'>('loading');
-
-  useEffect(() => {
-    if (!id) return;
-    let active = true;
-    setStatus('loading');
-    getPatientById(id)
-      .then(data => {
-        if (!active) return;
-        setPatient(data);
-        setStatus('done');
-      })
-      .catch(() => {
-        if (!active) return;
-        setStatus('error');
-      });
-    return () => {
-      active = false;
-    };
-  }, [id]);
+  const { data: patient, status } = useAsyncData<Patient>(
+    () => getPatientById(id!),
+    [id],
+  );
 
   if (status !== 'done' || !patient) {
     return (
@@ -142,13 +126,10 @@ export default function PatientDashboardPage() {
               ) : (
                 <div className={styles.encounterList}>
                   {patient.encounters.map((e, idx) => (
-                    <div
+                    <ClickableCard
                       key={e.id}
+                      to={`/patients/${patient.id}/visits/${e.id}`}
                       className={styles.encounter}
-                      onClick={() => navigate(`/patients/${patient.id}/visits/${e.id}`)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={ev => ev.key === 'Enter' && navigate(`/patients/${patient.id}/visits/${e.id}`)}
                     >
                       <div className={styles.encounterHead}>
                         <div className={styles.encounterDoctor}>
@@ -178,7 +159,7 @@ export default function PatientDashboardPage() {
                       {e.note && (
                         <p className={styles.encounterNote}>"{e.note}"</p>
                       )}
-                    </div>
+                    </ClickableCard>
                   ))}
                 </div>
               )}

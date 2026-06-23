@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDocumentUpload } from '../hooks/useDocumentUpload';
 import { getPatientById, Patient } from '../api/patients';
 import { downloadDocument } from '../api/documents';
+import { useAsyncData } from '../hooks/useAsyncData';
 import PageHeader from '../components/PageHeader';
 import styles from './DocumentsPage.module.css';
 
@@ -12,22 +12,10 @@ export default function DocumentsPage() {
   const { file, status, summary, uploadedId, uploadedFileName, fileInputRef, selectFile, upload, reset } =
     useDocumentUpload(id);
 
-  const [patient, setPatient] = useState<Patient | null>(null);
-
-  useEffect(() => {
-    if (!id) return;
-    let active = true;
-    getPatientById(id)
-      .then(data => {
-        if (active) setPatient(data);
-      })
-      .catch(() => {
-        if (active) setPatient(null);
-      });
-    return () => {
-      active = false;
-    };
-  }, [id]);
+  const { data: patient } = useAsyncData<Patient>(
+    () => getPatientById(id!),
+    [id],
+  );
 
   const isUploading = status === 'uploading';
   const isDone = status === 'done';

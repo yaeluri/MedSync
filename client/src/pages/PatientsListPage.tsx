@@ -1,45 +1,24 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
 import { getPatients, PatientSummary } from '../api/patients';
+import { useAsyncData } from '../hooks/useAsyncData';
 import PageHeader from '../components/PageHeader';
+import ClickableCard from '../components/ClickableCard';
 import styles from './PatientsListPage.module.css';
 
 const initials = (first: string, last: string) =>
   `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
 
 export default function PatientsListPage() {
-  const navigate = useNavigate();
   const [query, setQuery] = useState('');
-  const [patients, setPatients] = useState<PatientSummary[]>([]);
-  const [status, setStatus] = useState<'loading' | 'done' | 'error'>('loading');
-
-  useEffect(() => {
-    let active = true;
-    setStatus('loading');
-    getPatients()
-      .then(data => {
-        if (!active) return;
-        setPatients(data);
-        setStatus('done');
-      })
-      .catch(() => {
-        if (!active) return;
-        setStatus('error');
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { data: patients, status } = useAsyncData<PatientSummary[]>(getPatients, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return patients;
-    return patients.filter(p => {
-      return (
-        `${p.firstName} ${p.lastName}`.toLowerCase().includes(q) ||
-        (p.idNumber ?? '').toLowerCase().includes(q)
-      );
-    });
+    if (!q) return patients ?? [];
+    return (patients ?? []).filter(p =>
+      `${p.firstName} ${p.lastName}`.toLowerCase().includes(q) ||
+      (p.idNumber ?? '').toLowerCase().includes(q)
+    );
   }, [query, patients]);
 
   return (
@@ -81,18 +60,10 @@ export default function PatientsListPage() {
           ) : (
             <div className={styles.list}>
               {filtered.map(p => (
-                <div
+                <ClickableCard
                   key={p.id}
+                  to={`/patients/${p.id}`}
                   className={styles.card}
-                  onClick={() => navigate(`/patients/${p.id}`)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      navigate(`/patients/${p.id}`);
-                    }
-                  }}
                 >
                   <svg
                     className={styles.chevron}
@@ -120,7 +91,7 @@ export default function PatientsListPage() {
                   <div className={styles.avatarLg}>
                     {initials(p.firstName, p.lastName)}
                   </div>
-                </div>
+                </ClickableCard>
               ))}
             </div>
           )}
