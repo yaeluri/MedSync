@@ -115,7 +115,7 @@ export default function PatientsListPage() {
                       {p.firstName} {p.lastName}
                     </div>
                     <div className={styles.cardMeta}>
-                      תע"ז: {p.idNumber ?? p.id.slice(0, 8).toUpperCase()}
+                      ת"ז: {p.idNumber ?? p.id.slice(0, 8).toUpperCase()}
                       {p.age > 0 ? ` • גיל ${p.age}` : ''}
                       {p.gender ? ` • ${p.gender === 'Male' ? 'זכר' : p.gender === 'Female' ? 'נקבה' : p.gender}` : ''}
                     </div>

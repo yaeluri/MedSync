@@ -12,6 +12,7 @@ export interface AuthResult {
 }
 
 export interface RegisterPatientInput {
+  role?: RoleName;
   fullName: string;
   email: string;
   password: string;
@@ -25,6 +26,7 @@ export interface RegisterPatientInput {
 }
 
 export interface RegisterDoctorInput {
+  role?: RoleName;
   fullName: string;
   email: string;
   password: string;

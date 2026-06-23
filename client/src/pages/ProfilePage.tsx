@@ -18,11 +18,14 @@ import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import CakeIcon from '@mui/icons-material/Cake';
 import BadgeIcon from '@mui/icons-material/Badge';
+import HomeIcon from '@mui/icons-material/Home';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import EditIcon from '@mui/icons-material/Edit';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { clearSession, loadSession, saveSession } from '../api/auth';
 import { getUser, updateUser, User } from '../api/users';
 import { getCaregiver } from '../api/caregivers';
+import { getPatientById, updatePatient } from '../api/patients';
 
 function initialsFromName(name: string): string {
   return name
@@ -60,6 +63,8 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [phone, setPhone] = useState('');
   const [birthDate, setBirthDate] = useState('');
+  const [hmo, setHmo] = useState('');
+  const [address, setAddress] = useState('');
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<
     { severity: 'success' | 'error'; message: string } | null
@@ -86,6 +91,20 @@ export default function ProfilePage() {
     }
   }, [session?.caregiverId]);
 
+  useEffect(() => {
+    if (session?.patientId) {
+      getPatientById(session.patientId)
+        .then(p => {
+          setHmo(p.hmo ?? '');
+          setAddress(p.address ?? '');
+        })
+        .catch(() => {
+          setHmo('');
+          setAddress('');
+        });
+    }
+  }, [session?.patientId]);
+
   const profile = {
     name: user?.fullName ?? session?.fullName ?? 'Guest',
     email: user?.email ?? session?.email ?? '',
@@ -93,6 +112,8 @@ export default function ProfilePage() {
     dob: formatDob(user?.birthDate),
   };
   const initials = initialsFromName(profile.name);
+
+  const isPatient = !!session?.patientId;
 
   const handleEdit = () => {
     setPhone(user?.phone ?? '');
@@ -115,6 +136,13 @@ export default function ProfilePage() {
         birthDate: birthDate || undefined,
       });
       setUser(updated);
+      if (isPatient && session?.patientId) {
+        await updatePatient(session.patientId, {
+          phone: phone.trim() || undefined,
+          hmo: hmo.trim() || undefined,
+          address: address.trim() || undefined,
+        });
+      }
       if (session) {
         saveSession({
           ...session,
@@ -196,6 +224,24 @@ export default function ProfilePage() {
                 fullWidth
                 slotProps={{ inputLabel: { shrink: true } }}
               />
+              {isPatient && (
+                <>
+                  <TextField
+                    label="קופת חולים"
+                    value={hmo}
+                    onChange={e => setHmo(e.target.value)}
+                    size="small"
+                    fullWidth
+                  />
+                  <TextField
+                    label="כתובת"
+                    value={address}
+                    onChange={e => setAddress(e.target.value)}
+                    size="small"
+                    fullWidth
+                  />
+                </>
+              )}
               <Stack direction="row" spacing={1.5}>
                 <Button
                   variant="contained"
@@ -228,6 +274,14 @@ export default function ProfilePage() {
                     label={role === 'doctor' ? 'מספר רישיון' : 'תעודת זהות'}
                     value={idNumber}
                   />
+                </>
+              )}
+              {isPatient && (
+                <>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Row icon={<LocalHospitalIcon fontSize="small" />} label="קופת חולים" value={hmo || '—'} />
+                  <Divider sx={{ my: 1.5 }} />
+                  <Row icon={<HomeIcon fontSize="small" />} label="כתובת" value={address || '—'} />
                 </>
               )}
             </>

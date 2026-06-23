@@ -54,8 +54,7 @@ export function UploadModal({
               onClick={onChooseFile}
               sx={{ py: 1.5, borderRadius: 3, color: '#1a1a2e', borderColor: '#e9ecef' }}
             >
-              בחר מהגלריה
-            </Button>
+בחר מסמך            </Button>
           </>
         ) : (
           <>

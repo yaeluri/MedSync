@@ -5,6 +5,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import PersonIcon from '@mui/icons-material/Person';
 import PeopleIcon from '@mui/icons-material/People';
 import LogoutIcon from '@mui/icons-material/Logout';
+import { clearSession, loadSession } from '../api/auth';
 
 const NAV_ITEM_SX = {
   width: 40, height: 40, borderRadius: '10px', color: '#adb5bd',
@@ -24,7 +25,7 @@ function NavItem({ to, title, icon }: { to: string; title: string; icon: React.R
 
 export default function AppLayout() {
   const navigate = useNavigate();
-  const isDoctor = localStorage.getItem('role') === 'doctor';
+  const isDoctor = loadSession()?.role === 'doctor';
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
@@ -59,7 +60,7 @@ export default function AppLayout() {
 
         <Tooltip title="התנתק" placement="right">
           <IconButton
-            onClick={() => { localStorage.removeItem('role'); navigate('/login'); }}
+            onClick={() => { clearSession(); navigate('/login'); }}
             sx={{ width: 40, height: 40, borderRadius: '10px', color: '#adb5bd', '&:hover': { background: '#f1f3f5', color: '#495057' } }}
           >
             <LogoutIcon fontSize="small" />
