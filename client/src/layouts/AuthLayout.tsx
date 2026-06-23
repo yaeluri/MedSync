@@ -7,35 +7,35 @@ import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
 const themes = {
   patient: {
     gradient: "linear-gradient(135deg, #087f5b 0%, #0ca678 50%, #38d9a9 100%)",
-    title: "Your Health,\nIn Your Hands.",
+    title: "הבריאות שלך,\nבידיים שלך.",
     subtitle:
-      "Track your medical history, access documents, and stay connected with your care team — all in one place.",
+      "עקוב אחר ההיסטוריה הרפואית שלך, גש למסמכים והישאר מחובר לצוות הטיפול שלך — הכל במקום אחד.",
     badge: {
       icon: <FavoriteIcon />,
-      title: "Patient-Centered",
-      desc: "Designed for your health journey",
+      title: "ממוקד מטופל",
+      desc: "מתוכנן עבור מסע הבריאות שלך",
     },
   },
   therapist: {
     gradient: "linear-gradient(135deg, #5f3dc4 0%, #7048e8 50%, #9775fa 100%)",
-    title: "Your Practice,\nStreamlined.",
+    title: "הפרקטיקה שלך,\nמיועלת.",
     subtitle:
-      "Manage patients, document visits with AI-powered summaries, and focus on what matters — care.",
+      "נהל מטופלים, תעד ביקורים עם סיכומים מבוססי בינה מלאכותית, והתמקד במה שחשוב — הטיפול.",
     badge: {
       icon: <MedicalServicesIcon />,
-      title: "Built for Clinicians",
-      desc: "AI-assisted documentation",
+      title: "בנוי לקלינאים",
+      desc: "תיעוד בסיוע בינה מלאכותית",
     },
   },
   default: {
     gradient: "linear-gradient(135deg, #3b5bdb 0%, #5c7cfa 100%)",
-    title: "Your Medical History,\nUnified.",
+    title: "ההיסטוריה הרפואית שלך,\nמאוחדת.",
     subtitle:
-      "Connect with your doctors, manage documents, and get AI-powered health insights.",
+      "התחבר לרופאים שלך, נהל מסמכים וקבל תובנות בריאות מבוססות בינה מלאכותית.",
     badge: {
       icon: <SecurityIcon />,
-      title: "Secure & Private",
-      desc: "HIPAA Compliant Encryption",
+      title: "מאובטח ופרטי",
+      desc: "הצפנה תואמת HIPAA",
     },
   },
 };

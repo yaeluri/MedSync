@@ -94,39 +94,6 @@
   flex-shrink: 0;
 }
 
-/* Context bar */
-.contextBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.6rem 1.5rem;
-  background: #eef2ff;
-  border-bottom: 1px solid #dde4ff;
-  flex-shrink: 0;
-}
-
-.contextLeft {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: #2643a8;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.allergyChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  background: #fee2e2;
-  color: #b91c1c;
-  border: 1px solid #fecaca;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-}
-
 /* Body */
 .body {
   flex: 1;
@@ -140,40 +107,7 @@
 }
 
 /* Quick info grid */
-.infoGrid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-}
 
-@media (max-width: 720px) {
-  .infoGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.infoCard {
-  background: #fff;
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
-  padding: 0.7rem 0.85rem;
-}
-
-.infoLabel {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: #adb5bd;
-  text-transform: uppercase;
-  margin-bottom: 2px;
-}
-
-.infoValue {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1a1a2e;
-}
 
 /* Overview card */
 .overviewCard {
@@ -253,10 +187,14 @@
 }
 
 .overviewText {
-  font-size: 15px;
-  line-height: 1.65;
+  font-size: 14px;
+  line-height: 1.75;
   color: #343a40;
   margin: 0;
+  white-space: pre-wrap;
+  background: #f8f9ff;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
 }
 
 /* Two-column section */

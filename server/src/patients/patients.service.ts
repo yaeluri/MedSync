@@ -131,7 +131,6 @@ export class PatientsService {
       bloodType: p.bloodType,
       address: p.address ?? '',
       notes: p.notes,
-      allergy: undefined,
       overview: p.notes ?? '',
       encounters,
       documents,

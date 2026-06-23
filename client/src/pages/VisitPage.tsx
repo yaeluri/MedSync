@@ -114,6 +114,8 @@ export default function VisitPage() {
       setSubjective(fallbackSubjective);
       setDiagnosis(diag);
       setPlan(recs);
+      // Prevent the debounce from re-summarizing the loaded text and overwriting liveSummary.
+      lastSummarizedRef.current = fallbackSubjective;
       // Reconstruct a summary object from the saved text for display
       setLiveSummary({
         patientComplaints: fallbackSubjective || 'Not documented.',

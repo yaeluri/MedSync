@@ -73,6 +73,7 @@ export default function LoginPage() {
           bgcolor: `${config.color}14`,
           color: config.color,
           border: `1px solid ${config.color}30`,
+          direction: "ltr",
           "& .MuiChip-icon": { color: config.color },
         }}
       />
@@ -89,6 +90,7 @@ export default function LoginPage() {
       <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
         <TextField
           type="email"
+          name="email"
           placeholder="כתובת אימייל"
           autoComplete="email"
           value={email}
@@ -96,6 +98,7 @@ export default function LoginPage() {
         />
         <TextField
           type="password"
+          name="password"
           placeholder="סיסמה"
           autoComplete="current-password"
           value={password}

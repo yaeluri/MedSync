@@ -1,0 +1,35 @@
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 720px) {
+  .infoGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.infoCard {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 0.7rem 0.85rem;
+  text-align: end;
+}
+
+.infoLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #adb5bd;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.infoValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a2e;
+}

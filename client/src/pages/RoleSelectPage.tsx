@@ -42,7 +42,7 @@ export default function RoleSelectPage() {
         variant="h4"
         sx={{ fontWeight: 800, color: "#1a1a2e", mb: 0.5, textAlign: "center" }}
       >
-        {isRegister ? "Create Your Account" : "Welcome to MedSync"}
+        {isRegister ? "יצירת חשבון" : "ברוכים הבאים ל-MedSync"}
       </Typography>
       <Typography
         sx={{
@@ -53,8 +53,8 @@ export default function RoleSelectPage() {
         }}
       >
         {isRegister
-          ? "Choose your role to get started"
-          : "Select how you want to sign in"}
+          ? "בחרו את התפקיד שלכם להתחלה"
+          : "בחרו כיצד ברצונכם להתחבר"}
       </Typography>
 
       <Box
@@ -100,13 +100,12 @@ export default function RoleSelectPage() {
           <Typography
             sx={{ fontWeight: 700, fontSize: 18, color: "#1a1a2e", mb: 0.5 }}
           >
-            Patient
+            מטופל
           </Typography>
           <Typography
             sx={{ fontSize: 13, color: "text.secondary", lineHeight: 1.5 }}
           >
-            Access your medical records, manage appointments, and communicate
-            with your care team.
+            גישה לרשומות הרפואיות שלך, ניהול פגישות ותקשורת עם צוות הטיפול שלך.
           </Typography>
         </Paper>
 
@@ -145,13 +144,12 @@ export default function RoleSelectPage() {
           <Typography
             sx={{ fontWeight: 700, fontSize: 18, color: "#1a1a2e", mb: 0.5 }}
           >
-            Therapist
+            רופא
           </Typography>
           <Typography
             sx={{ fontSize: 13, color: "text.secondary", lineHeight: 1.5 }}
           >
-            Manage your patients, document visits with AI assistance, and
-            streamline your practice.
+            ניהול מטופלים, תיעוד ביקורים בסיוע בינה מלאכותית ייעול הפרקטיקה שלך.
           </Typography>
         </Paper>
       </Box>

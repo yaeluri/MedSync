@@ -30,7 +30,6 @@ export interface Patient {
   bloodType?: string;
   address: string;
   notes?: string;
-  allergy?: string;
   overview: string;
   encounters: Encounter[];
   documents: PatientDocument[];

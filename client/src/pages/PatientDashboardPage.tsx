@@ -4,6 +4,7 @@ import { downloadDocument } from '../api/documents';
 import { useAsyncData } from '../hooks/useAsyncData';
 import PageHeader from '../components/PageHeader';
 import ClickableCard from '../components/ClickableCard';
+import InfoGrid from '../components/InfoGrid';
 import styles from './PatientDashboardPage.module.css';
 
 export default function PatientDashboardPage() {
@@ -45,48 +46,15 @@ export default function PatientDashboardPage() {
         onBack={() => navigate('/patients')}
       />
 
-      <div className={styles.contextBar}>
-        <div className={styles.contextLeft}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
-          </svg>
-          <span>הקשר מטופל: {fullName}</span>
-        </div>
-        {patient.allergy && (
-          <div className={styles.allergyChip}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-              <line x1="12" y1="9" x2="12" y2="13" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-            אלרגיה: {patient.allergy}
-          </div>
-        )}
-      </div>
-
       <div className={styles.body}>
         <div className={styles.container}>
           {/* Quick info */}
-          <div className={styles.infoGrid}>
-            <div className={styles.infoCard}>
-              <div className={styles.infoLabel}>תאריך לידה</div>
-              <div className={styles.infoValue}>{patient.dob}</div>
-            </div>
-            <div className={styles.infoCard}>
-              <div className={styles.infoLabel}>טלפון</div>
-              <div className={styles.infoValue}>{patient.phone}</div>
-            </div>
-            <div className={styles.infoCard}>
-              <div className={styles.infoLabel}>קופת חולים</div>
-              <div className={styles.infoValue}>{patient.hmo}</div>
-            </div>
-            <div className={styles.infoCard}>
-              <div className={styles.infoLabel}>כתובת</div>
-              <div className={styles.infoValue}>{patient.address}</div>
-            </div>
-          </div>
+          <InfoGrid fields={[
+            { label: 'תאריך לידה', value: patient.dob },
+            { label: 'טלפון',      value: patient.phone },
+            { label: 'קופת חולים', value: patient.hmo },
+            { label: 'כתובת',      value: patient.address },
+          ]} />
 
           {/* AI overview */}
           <div className={styles.overviewCard}>
@@ -156,9 +124,6 @@ export default function PatientDashboardPage() {
                       <div className={styles.encounterMeta}>
                         {e.specialty} • {e.type}
                       </div>
-                      {e.note && (
-                        <p className={styles.encounterNote}>"{e.note}"</p>
-                      )}
                     </ClickableCard>
                   ))}
                 </div>
