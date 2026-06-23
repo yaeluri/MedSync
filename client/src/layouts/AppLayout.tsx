@@ -14,7 +14,7 @@ const NAV_ITEM_SX = {
 
 function NavItem({ to, title, icon }: { to: string; title: string; icon: React.ReactNode }) {
   return (
-    <Tooltip title={title} placement="right">
+    <Tooltip title={title} placement="left">
       <IconButton component={NavLink} to={to} sx={NAV_ITEM_SX}>
         {icon}
       </IconButton>
@@ -28,11 +28,12 @@ export default function AppLayout() {
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      <Outlet />
       <Box
         component="aside"
         sx={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
-          width: 64, borderRight: '1px solid #e9ecef', py: 2, flexShrink: 0, bgcolor: '#fff',
+          width: 64, borderLeft: '1px solid #e9ecef', py: 2, flexShrink: 0, bgcolor: '#fff',
         }}
       >
         <Box
@@ -57,7 +58,7 @@ export default function AppLayout() {
           )}
         </Box>
 
-        <Tooltip title="התנתק" placement="right">
+        <Tooltip title="התנתק" placement="left">
           <IconButton
             onClick={() => { localStorage.removeItem('role'); navigate('/login'); }}
             sx={{ width: 40, height: 40, borderRadius: '10px', color: '#adb5bd', '&:hover': { background: '#f1f3f5', color: '#495057' } }}
@@ -66,8 +67,6 @@ export default function AppLayout() {
           </IconButton>
         </Tooltip>
       </Box>
-
-      <Outlet />
     </Box>
   );
 }

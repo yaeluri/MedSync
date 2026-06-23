@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPatients, PatientSummary } from '../api/patients';
-import { useCurrentDoctor } from '../hooks/useCurrentDoctor';
+import PageHeader from '../components/PageHeader';
 import styles from './PatientsListPage.module.css';
 
 const initials = (first: string, last: string) =>
@@ -9,7 +9,6 @@ const initials = (first: string, last: string) =>
 
 export default function PatientsListPage() {
   const navigate = useNavigate();
-  const doctor = useCurrentDoctor();
   const [query, setQuery] = useState('');
   const [patients, setPatients] = useState<PatientSummary[]>([]);
   const [status, setStatus] = useState<'loading' | 'done' | 'error'>('loading');
@@ -45,19 +44,7 @@ export default function PatientsListPage() {
 
   return (
     <div className={styles.main}>
-      <header className={styles.header}>
-        <div className={styles.headerLeft}>
-          <div className={styles.pageTitle}>רשימת מטופלים</div>
-          <div className={styles.pageSub}>בחר מטופל להתחלת הטיפול</div>
-        </div>
-        <div className={styles.headerRight}>
-          <div className={styles.doctorInfo}>
-            <span className={styles.doctorName}>{doctor.fullName}</span>
-            <span className={styles.doctorSpec}>{doctor.specialization}</span>
-          </div>
-          <div className={styles.avatar}>{doctor.initials}</div>
-        </div>
-      </header>
+      <PageHeader title="רשימת מטופלים" subtitle="בחר מטופל להתחלת הטיפול" />
 
       <div className={styles.body}>
         <div className={styles.container}>
@@ -107,19 +94,6 @@ export default function PatientsListPage() {
                     }
                   }}
                 >
-                  <div className={styles.avatarLg}>
-                    {initials(p.firstName, p.lastName)}
-                  </div>
-                  <div className={styles.cardBody}>
-                    <div className={styles.cardName}>
-                      {p.firstName} {p.lastName}
-                    </div>
-                    <div className={styles.cardMeta}>
-                      תע"ז: {p.idNumber ?? p.id.slice(0, 8).toUpperCase()}
-                      {p.age > 0 ? ` • גיל ${p.age}` : ''}
-                      {p.gender ? ` • ${p.gender === 'Male' ? 'זכר' : p.gender === 'Female' ? 'נקבה' : p.gender}` : ''}
-                    </div>
-                  </div>
                   <svg
                     className={styles.chevron}
                     width="20"
@@ -131,8 +105,21 @@ export default function PatientsListPage() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
-                    <polyline points="9 18 15 12 9 6" />
+                    <polyline points="15 18 9 12 15 6" />
                   </svg>
+                  <div className={styles.cardBody}>
+                    <div className={styles.cardName}>
+                      {p.firstName} {p.lastName}
+                    </div>
+                    <div className={styles.cardMeta}>
+                      ת"ז: {p.idNumber ?? p.id.slice(0, 8).toUpperCase()}
+                      {p.age > 0 ? ` • גיל ${p.age}` : ''}
+                      {p.gender ? ` • ${p.gender === 'Male' ? 'זכר' : p.gender === 'Female' ? 'נקבה' : p.gender}` : ''}
+                    </div>
+                  </div>
+                  <div className={styles.avatarLg}>
+                    {initials(p.firstName, p.lastName)}
+                  </div>
                 </div>
               ))}
             </div>

@@ -11,7 +11,7 @@ import {
   VisitSummaryObject,
 } from '../api/visits';
 import { loadSession } from '../api/auth';
-import { useCurrentDoctor } from '../hooks/useCurrentDoctor';
+import PageHeader from '../components/PageHeader';
 import styles from './VisitPage.module.css';
 
 const formatTime = (s: number) =>
@@ -64,7 +64,6 @@ export default function VisitPage() {
   const navigate = useNavigate();
   const { id: patientId, visitId } = useParams<{ id: string; visitId: string }>();
   const session = loadSession();
-  const doctor = useCurrentDoctor();
   const { status, transcript, summary, timer, start, stop } = useAudioRecorder();
 
   const [subjective, setSubjective] = useState('');
@@ -284,34 +283,15 @@ export default function VisitPage() {
   return (
     <div className={styles.main}>
         {/* Header */}
-        <header className={styles.header}>
-          <div className={styles.headerLeft}>
-            <button className={styles.backBtn} onClick={() => navigate(-1)}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-              </svg>
-            </button>
-            <div>
-              <div className={styles.encounterTitle}>
-                {isReadOnly ? 'ביקור קודם' : 'ביקור פעיל'}
-              </div>
-              <div className={styles.encounterSub}>
-                {isLoadingVisit
-                  ? 'טוען...'
-                  : isReadOnly
-                  ? visitDate ?? 'צפייה בלבד'
-                  : isRecording ? 'מקליט ומתעד...' : isProcessing ? 'מעבד...' : 'מוכן'}
-              </div>
-            </div>
-          </div>
-          <div className={styles.headerRight}>
-            <div className={styles.doctorInfo}>
-              <span className={styles.doctorName}>{doctor.fullName}</span>
-              <span className={styles.doctorSpec}>{doctor.specialization}</span>
-            </div>
-            <div className={styles.avatar}>{doctor.initials}</div>
-          </div>
-        </header>
+        <PageHeader
+          title={isReadOnly ? 'ביקור קודם' : 'ביקור פעיל'}
+          subtitle={
+            isLoadingVisit ? 'טוען...'
+            : isReadOnly ? visitDate ?? 'צפייה בלבד'
+            : isRecording ? 'מקליט ומתעד...' : isProcessing ? 'מעבד...' : 'מוכן'
+          }
+          onBack={() => navigate(-1)}
+        />
 
         {/* Patient context bar */}
         {patientInfo && (
@@ -339,7 +319,7 @@ export default function VisitPage() {
 
         {/* Body */}
         <div className={styles.body}>
-          {/* ── Left: Visit Note ── */}
+          {/* ── Right: Visit Note ── */}
           <div className={styles.leftColumn}>
             <div className={`${styles.noteForm} ${isProcessing ? styles.noteFormProcessing : ''}`}>
               {isProcessing && (
@@ -423,7 +403,7 @@ export default function VisitPage() {
             )}
           </div>
 
-          {/* ── Right: AI Summary ── */}
+          {/* ── Left: AI Summary ── */}
           <aside className={styles.aiPanel}>
             <div className={styles.aiTabBar}>
               <span className={styles.aiTab}>סיכום בינה מלאכותית</span>
@@ -490,8 +470,7 @@ export default function VisitPage() {
                   {isRecording ? `עצור הקלטה  ${formatTime(timer)}` : 'הקלט שמע לביקור'}
                 </button>
               </div>
-            )}
-          </aside>
+            )}          </aside>
         </div>
 
         <Snackbar
