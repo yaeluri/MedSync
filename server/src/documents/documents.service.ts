@@ -103,4 +103,18 @@ export class DocumentsService {
       fileName: doc.fileName,
     };
   }
+
+  async getSummary(
+    id: string,
+  ): Promise<{ summaryText: string; fileName: string } | null> {
+    const doc = await this.medicalDocuments.findOne({
+      where: { id },
+      relations: ['summary'],
+    });
+    if (!doc) return null;
+    return {
+      summaryText: doc.summary?.summaryText ?? '',
+      fileName: doc.fileName,
+    };
+  }
 }

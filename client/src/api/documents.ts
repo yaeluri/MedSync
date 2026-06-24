@@ -38,3 +38,7 @@ export async function downloadDocument(id: string, fileName: string): Promise<vo
   a.remove();
   URL.revokeObjectURL(url);
 }
+
+export function getDocumentSummary(id: string): Promise<{ summaryText: string; fileName: string }> {
+  return apiRequest<{ summaryText: string; fileName: string }>(`/api/documents/${id}/summary`);
+}

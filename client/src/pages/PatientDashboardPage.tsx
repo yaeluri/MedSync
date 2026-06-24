@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getPatientById, Patient } from '../api/patients';
-import { downloadDocument } from '../api/documents';
+import { downloadDocument, getDocumentSummary } from '../api/documents';
 import { useAsyncData } from '../hooks/useAsyncData';
 import PageHeader from '../components/PageHeader';
 import ClickableCard from '../components/ClickableCard';
@@ -14,6 +15,28 @@ export default function PatientDashboardPage() {
     () => getPatientById(id!),
     [id],
   );
+
+  const [expandedDocId, setExpandedDocId] = useState<string | null>(null);
+  const [docSummaries, setDocSummaries] = useState<Record<string, string>>({});
+  const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
+
+  async function handleToggleSummary(docId: string) {
+    if (expandedDocId === docId) {
+      setExpandedDocId(null);
+      return;
+    }
+    setExpandedDocId(docId);
+    if (docSummaries[docId] !== undefined) return;
+    setLoadingDocId(docId);
+    try {
+      const result = await getDocumentSummary(docId);
+      setDocSummaries(prev => ({ ...prev, [docId]: result.summaryText || 'אין סיכום זמין.' }));
+    } catch {
+      setDocSummaries(prev => ({ ...prev, [docId]: 'שגיאה בטעינת הסיכום.' }));
+    } finally {
+      setLoadingDocId(null);
+    }
+  }
 
   if (status !== 'done' || !patient) {
     return (
@@ -163,7 +186,25 @@ export default function PatientDashboardPage() {
                         <div className={styles.docMeta}>
                           {d.date} • {d.kind}
                         </div>
+                        {expandedDocId === d.id && (
+                          <div className={styles.docSummaryBox}>
+                            {loadingDocId === d.id
+                              ? 'טוען...'
+                              : (docSummaries[d.id] ?? '')}
+                          </div>
+                        )}
                       </div>
+                      <button
+                        title="סיכום"
+                        style={{ background: expandedDocId === d.id ? '#eef2ff' : 'none', border: 'none', cursor: 'pointer', color: expandedDocId === d.id ? '#3b5bdb' : '#868e96', padding: '4px', display: 'flex', alignItems: 'center', borderRadius: '6px' }}
+                        onClick={() => handleToggleSummary(d.id)}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"/>
+                          <line x1="12" y1="8" x2="12" y2="12"/>
+                          <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                      </button>
                       <button
                         title="Download"
                         style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#868e96', padding: '4px', display: 'flex', alignItems: 'center' }}

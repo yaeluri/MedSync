@@ -88,4 +88,11 @@ export class DocumentsController {
     );
     res.send(file.buffer);
   }
+
+  @Get(':id/summary')
+  async getSummary(@Param('id', new ParseUUIDPipe()) id: string) {
+    const result = await this.documentsService.getSummary(id);
+    if (!result) throw new NotFoundException('Document not found');
+    return result;
+  }
 }
