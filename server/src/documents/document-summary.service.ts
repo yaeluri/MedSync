@@ -7,13 +7,11 @@ Task: Summarize the following blood test results and medical visit summaries.
 Requirements:
 1. Executive Summary: Provide a 2-3 sentence overview of the patient's current status based on the documents.
 2. Normal Findings: Briefly list key systems or categories that are within range (e.g., Kidney function, Electrolytes).
-3. Abnormal Findings (High Priority): Create a table for all out-of-range values:
-   • Parameter Name
-   • Result vs. Reference Range
-   • Brief Significance (What this value usually indicates).
+3. Abnormal Findings (High Priority): List all out-of-range values with: Parameter Name, Result vs. Reference Range, and Brief Significance.
 4. Action Items: List specific questions or findings that require immediate discussion with a primary care physician.
-Tone: Professional, objective, and concise. Use bullet points for readability.
+Tone: Professional, objective, and concise.
 IMPORTANT: Write the entire summary in Hebrew.
+IMPORTANT: Output plain text only. Do NOT use Markdown, asterisks, pound signs, pipes, hyphens for lists, or any other formatting symbols. Use plain numbered lists and line breaks only.
 
 Document text:
 `;
