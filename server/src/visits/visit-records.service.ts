@@ -12,7 +12,7 @@ import { VisitDiagnosis } from '../entities/visitDiagnosis/visitDiagnosisEntity'
 import { VisitMedicine } from '../entities/visitMedicine/visitMedicineEntity';
 import { Diagnosis } from '../entities/diagnosis/diagnosisEntity';
 import { Medicine } from '../entities/medicine/medicineEntity';
-import { RecordingStatus, VisitSummaryType } from '../entities/enums';
+import { RecordingStatus, VisitSummaryType, VisitType } from '../entities/enums';
 import { DiagnosesService } from '../diagnoses/diagnoses.service';
 import { MedicinesService } from '../medicines/medicines.service';
 
@@ -24,6 +24,13 @@ export interface VisitInput {
   bloodPressure?: string;
   pulse?: string;
   bodyTemp?: string;
+  weight?: string;
+  height?: string;
+  oxygenSat?: string;
+  chiefComplaint?: string;
+  visitType?: string;
+  followUpDate?: string;
+  referralNotes?: string;
 }
 
 export interface VisitRecordingInput {
@@ -127,6 +134,13 @@ export class VisitRecordsService {
       bloodPressure: input.bloodPressure,
       pulse: input.pulse,
       bodyTemp: input.bodyTemp,
+      weight: input.weight,
+      height: input.height,
+      oxygenSat: input.oxygenSat,
+      chiefComplaint: input.chiefComplaint,
+      visitType: input.visitType as VisitType | undefined,
+      followUpDate: input.followUpDate,
+      referralNotes: input.referralNotes,
     });
     const saved = await this.visits.save(visit);
     return this.findOne(saved.id);
@@ -140,6 +154,13 @@ export class VisitRecordsService {
     if (input.bloodPressure !== undefined) visit.bloodPressure = input.bloodPressure;
     if (input.pulse !== undefined) visit.pulse = input.pulse;
     if (input.bodyTemp !== undefined) visit.bodyTemp = input.bodyTemp;
+    if (input.weight !== undefined) visit.weight = input.weight;
+    if (input.height !== undefined) visit.height = input.height;
+    if (input.oxygenSat !== undefined) visit.oxygenSat = input.oxygenSat;
+    if (input.chiefComplaint !== undefined) visit.chiefComplaint = input.chiefComplaint;
+    if (input.visitType !== undefined) visit.visitType = input.visitType as VisitType;
+    if (input.followUpDate !== undefined) visit.followUpDate = input.followUpDate;
+    if (input.referralNotes !== undefined) visit.referralNotes = input.referralNotes;
     if (input.slotId !== undefined) visit.slotId = input.slotId;
     if (input.patientId !== undefined) visit.patientId = input.patientId;
     if (input.caregiverId !== undefined) visit.caregiverId = input.caregiverId;
