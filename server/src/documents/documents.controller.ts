@@ -17,6 +17,7 @@ import {
 import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentsService } from './documents.service';
+import { DocumentType } from '../entities/enums';
 
 const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024; // 10 MB
 
@@ -41,9 +42,18 @@ export class DocumentsController {
     @UploadedFile() file: Express.Multer.File,
     @Body('patientId') patientId?: string,
     @Body('uploadedByUserId') uploadedByUserId?: string,
+    @Body('documentType') documentType?: string,
   ) {
     if (!file || !file.buffer) {
       throw new BadRequestException('A document file is required');
+    }
+
+    let parsedDocumentType: DocumentType | undefined;
+    if (documentType) {
+      if (!Object.values(DocumentType).includes(documentType as DocumentType)) {
+        throw new BadRequestException(`Invalid document type: ${documentType}`);
+      }
+      parsedDocumentType = documentType as DocumentType;
     }
 
     if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
@@ -75,6 +85,7 @@ export class DocumentsController {
         originalName,
         patientId,
         uploadedByUserId,
+        parsedDocumentType,
       );
 
       // Fire-and-forget background analysis (OCR + summary). Errors are handled internally.

@@ -5,7 +5,7 @@ import { OcrService } from './ocr.service';
 import { DocumentSummaryService } from './document-summary.service';
 import { MedicalDocument } from '../entities/medicalDocument/medicalDocumentEntity';
 import { DocumentSummary } from '../entities/documentSummary/documentSummaryEntity';
-import { SummaryStatus } from '../entities/enums';
+import { DocumentType, SummaryStatus } from '../entities/enums';
 
 export interface DocumentResult {
   id: string;
@@ -46,11 +46,13 @@ export class DocumentsService {
     originalName: string,
     patientId: string,
     uploadedByUserId: string,
+    documentType?: DocumentType,
   ): Promise<PendingDocumentResult> {
     const doc = this.medicalDocuments.create({
       patientId,
       uploadedByUserId,
       summaryStatus: SummaryStatus.PROCESSING,
+      documentType,
       fileName: originalName,
       fileUrl: '',
       fileFormat: mimeType,
