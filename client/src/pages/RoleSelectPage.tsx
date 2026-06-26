@@ -1,9 +1,10 @@
+import React from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
 import { Box, Typography, Paper } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 
-export default function RoleSelectPage() {
+export const RoleSelectPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isRegister = location.pathname.includes("register");
@@ -155,4 +156,6 @@ export default function RoleSelectPage() {
       </Box>
     </Box>
   );
-}
+};
+
+export default RoleSelectPage;

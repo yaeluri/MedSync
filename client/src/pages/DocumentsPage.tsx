@@ -1,14 +1,28 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import {
+  Box,
+  Typography,
+  Button,
+  Stack,
+  Paper,
+  IconButton,
+  Tooltip,
+  Chip,
+  Divider,
+} from '@mui/material';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import DescriptionIcon from '@mui/icons-material/Description';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import DownloadIcon from '@mui/icons-material/Download';
 import { useDocumentUpload } from '../hooks/useDocumentUpload';
 import { getPatientById, Patient } from '../api/patients';
 import { downloadDocument } from '../api/documents';
 import { useAsyncData } from '../hooks/useAsyncData';
 import PageHeader from '../components/PageHeader';
 import DocumentSummaryModal from '../components/DocumentSummaryModal';
-import styles from './DocumentsPage.module.css';
 
-export default function DocumentsPage() {
+export const DocumentsPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { file, status, summary, uploadedId, uploadedFileName, fileInputRef, selectFile, upload, reset } =
@@ -30,30 +44,48 @@ export default function DocumentsPage() {
     : 'מטופל';
 
   return (
-    <div className={styles.main}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
       <PageHeader
         title={`מסמכים — ${patientName}`}
         subtitle="העלה וסכם מסמכים רפואיים"
         onBack={id ? () => navigate(`/patients/${id}`) : undefined}
       />
 
-      <div className={styles.body}>
-        <div className={styles.leftColumn}>
-          <div className={styles.sectionTitle}>העלאת מסמך</div>
+      <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', p: 3, gap: 3 }}>
+        {/* Left column */}
+        <Box sx={{ flex: '0 0 340px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#868e96', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            העלאת מסמך
+          </Typography>
 
-          <div
-            className={styles.dropZone}
+          {/* Drop zone */}
+          <Box
             onClick={() => fileInputRef.current?.click()}
+            sx={{
+              border: '2px dashed #ced4da',
+              borderRadius: 2,
+              p: 4,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              bgcolor: '#f8f9fa',
+              transition: 'all 0.15s ease',
+              '&:hover': { borderColor: 'primary.main', bgcolor: '#eef2ff' },
+              gap: 1,
+            }}
           >
-            <svg className={styles.dropZoneIcon} width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
-            <p className={styles.dropZoneText}>לחץ להעלאה או גרור לכאן</p>
-            <p className={styles.dropZoneSub}>PDF או קבצי תמונה</p>
-          </div>
+            <UploadFileIcon sx={{ fontSize: 36, color: '#ced4da' }} />
+            <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#495057' }}>
+              לחץ להעלאה או גרור לכאן
+            </Typography>
+            <Typography sx={{ fontSize: 12, color: '#868e96' }}>
+              PDF או קבצי תמונה
+            </Typography>
+          </Box>
 
+          {/* Hidden file input — exception allowed for file inputs */}
           <input
             ref={fileInputRef}
             type="file"
@@ -63,129 +95,189 @@ export default function DocumentsPage() {
           />
 
           {file && (
-            <div className={styles.fileSelected}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-              </svg>
-              {file.name}
-            </div>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1, bgcolor: '#eef2ff', borderRadius: 1.5 }}>
+              <DescriptionIcon sx={{ fontSize: 16, color: 'primary.main', flexShrink: 0 }} />
+              <Typography sx={{ fontSize: 13, color: '#1a1a2e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {file.name}
+              </Typography>
+            </Box>
           )}
 
-          <div className={styles.btnRow}>
-            <button
-              className={file && !isUploading ? styles.uploadBtn : styles.uploadBtnDisabled}
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="contained"
               onClick={upload}
               disabled={!file || isUploading}
+              fullWidth
+              sx={{ borderRadius: 2, fontWeight: 600 }}
             >
               {isUploading ? 'מעבד...' : 'העלאה וסיכום'}
-            </button>
+            </Button>
             {(file || summary) && (
-              <button className={styles.clearBtn} onClick={reset}>נקה</button>
+              <Button
+                variant="outlined"
+                onClick={reset}
+                sx={{ borderRadius: 2, fontWeight: 600, flexShrink: 0 }}
+              >
+                נקה
+              </Button>
             )}
-          </div>
+          </Stack>
 
           {(isDone || isError) && (
-            <div className={styles.summaryCard}>
-              <div className={styles.summaryHeader}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b5bdb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12" y2="12"/>
-                  <line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-                <span className={styles.summaryTitle}>סיכום בינה מלאכותית</span>
-                {isDone && <span className={styles.summaryBadge}>הושלם</span>}
-                {isDone && uploadedId && (
-                  <button
-                    className={styles.downloadBtn}
-                    title="Download uploaded file"
-                    onClick={() => downloadDocument(uploadedId, uploadedFileName ?? 'document')}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                      <polyline points="7 10 12 15 17 10"/>
-                      <line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
-                    הורדה
-                  </button>
+            <Paper
+              elevation={0}
+              sx={{ border: '1px solid #e9ecef', borderRadius: 2, p: 2 }}
+            >
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                <InfoOutlinedIcon sx={{ fontSize: 16, color: 'primary.main', flexShrink: 0 }} />
+                <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#1a1a2e', flex: 1 }}>
+                  סיכום בינה מלאכותית
+                </Typography>
+                {isDone && (
+                  <Chip label="הושלם" size="small" sx={{ fontSize: 11, bgcolor: '#ebfbee', color: '#2f9e44', fontWeight: 600 }} />
                 )}
-              </div>
-              <p className={`${styles.summaryText} ${isError ? styles.summaryError : ''}`}>
+                {isDone && uploadedId && (
+                  <Tooltip title="הורדה">
+                    <IconButton
+                      size="small"
+                      onClick={() => downloadDocument(uploadedId, uploadedFileName ?? 'document')}
+                      sx={{ color: '#868e96' }}
+                    >
+                      <DownloadIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Stack>
+              <Typography
+                sx={{
+                  fontSize: 13,
+                  lineHeight: 1.7,
+                  color: isError ? 'error.main' : '#495057',
+                  direction: 'rtl',
+                }}
+              >
                 {summary}
-              </p>
-            </div>
+              </Typography>
+            </Paper>
           )}
-        </div>
+        </Box>
 
-        {/* ── Right panel ── */}
-        <aside className={styles.rightPanel}>
-          <div className={styles.panelTabBar}>
-            <span className={styles.panelTab}>תובנות בינה מלאכותית</span>
-          </div>
+        {/* Right panel */}
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            border: '1px solid #e9ecef',
+            borderRadius: 2,
+            bgcolor: '#fff',
+            overflow: 'hidden',
+          }}
+        >
+          <Box sx={{ px: 2.5, py: 1.5, borderBottom: '1px solid #e9ecef' }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#1a1a2e' }}>
+              תובנות בינה מלאכותית
+            </Typography>
+          </Box>
 
-          <div className={styles.panelContent}>
+          <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
             {isUploading ? (
-              <p className={styles.processingText}>מנתח מסמך...</p>
+              <Typography sx={{ color: '#868e96', fontSize: 14 }}>מנתח מסמך...</Typography>
             ) : isDone ? (
-              <div className={styles.insightCard}>
-                <div className={styles.insightIconWrap}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
-                </div>
-                <div>
-                  <div className={styles.insightTitle}>תובנה MedSync</div>
-                  <div className={styles.insightText}>
+              <Box sx={{ display: 'flex', gap: 1.5, p: 1.5, bgcolor: '#f8f9fa', borderRadius: 2 }}>
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '8px',
+                    bgcolor: '#eef2ff',
+                    color: 'primary.main',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <InfoOutlinedIcon fontSize="small" />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#1a1a2e', mb: 0.5 }}>
+                    תובנה MedSync
+                  </Typography>
+                  <Typography sx={{ fontSize: 13, color: '#495057' }}>
                     המסמך עובד בהצלחה. ראה את הסיכום משמאל.
-                  </div>
-                </div>
-              </div>
+                  </Typography>
+                </Box>
+              </Box>
             ) : (
-              <p className={styles.emptyState}>העלה מסמך לצפייה בתובנות.</p>
+              <Typography sx={{ color: '#868e96', fontSize: 14 }}>
+                העלה מסמך לצפייה בתובנות.
+              </Typography>
             )}
-          </div>
+          </Box>
 
           {/* Existing documents for this patient */}
           {patient && patient.documents && patient.documents.length > 0 && (
-            <div className={styles.existingDocsList}>
-              <div className={styles.existingDocsTitle}>מסמכים שהועלו</div>
-              {patient.documents.map(d => (
-                <div key={d.id} className={styles.existingDocRow}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#868e96" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                  </svg>
-                  <span className={styles.existingDocName} title={d.name}>{d.name}</span>
-                  <button
-                    className={styles.existingDocDownload}
-                    title="צפה בסיכום"
-                    onClick={() => setSummaryModal({ id: d.id, name: d.name })}
+            <>
+              <Divider />
+              <Box sx={{ px: 2.5, py: 1.5, borderBottom: '1px solid #e9ecef' }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#868e96', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  מסמכים שהועלו
+                </Typography>
+              </Box>
+              <Box sx={{ overflow: 'auto' }}>
+                {patient.documents.map(d => (
+                  <Box
+                    key={d.id}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      px: 2,
+                      py: 1,
+                      borderBottom: '1px solid #f1f3f5',
+                    }}
                   >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"/>
-                      <line x1="12" y1="8" x2="12" y2="12"/>
-                      <line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                  </button>
-                  <button
-                    className={styles.existingDocDownload}
-                    title="הורדה"
-                    onClick={() => downloadDocument(d.id, d.name)}
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                      <polyline points="7 10 12 15 17 10"/>
-                      <line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
+                    <DescriptionIcon sx={{ fontSize: 16, color: '#868e96', flexShrink: 0 }} />
+                    <Typography
+                      sx={{
+                        fontSize: 13,
+                        color: '#1a1a2e',
+                        flex: 1,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title={d.name}
+                    >
+                      {d.name}
+                    </Typography>
+                    <Tooltip title="צפה בסיכום">
+                      <IconButton
+                        size="small"
+                        sx={{ color: '#868e96' }}
+                        onClick={() => setSummaryModal({ id: d.id, name: d.name })}
+                      >
+                        <InfoOutlinedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="הורדה">
+                      <IconButton
+                        size="small"
+                        sx={{ color: '#868e96' }}
+                        onClick={() => downloadDocument(d.id, d.name)}
+                      >
+                        <DownloadIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                ))}
+              </Box>
+            </>
           )}
-        </aside>
-      </div>
+        </Box>
+      </Box>
 
       {summaryModal && (
         <DocumentSummaryModal
@@ -194,6 +286,9 @@ export default function DocumentsPage() {
           onClose={() => setSummaryModal(null)}
         />
       )}
-    </div>
+    </Box>
   );
-}
+};
+
+export default DocumentsPage;
+

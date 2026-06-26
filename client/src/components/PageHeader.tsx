@@ -1,4 +1,6 @@
-import styles from './PageHeader.module.css';
+import React from 'react';
+import { Box, Stack, Typography, IconButton } from '@mui/material';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useCurrentDoctor } from '../hooks/useCurrentDoctor';
 
 interface PageHeaderProps {
@@ -7,31 +9,67 @@ interface PageHeaderProps {
   onBack?: () => void;
 }
 
-export default function PageHeader({ title, subtitle, onBack }: PageHeaderProps) {
+export const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, onBack }) => {
   const doctor = useCurrentDoctor();
 
   return (
-    <header className={styles.header}>
-      <div className={styles.headerLeft}>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        px: 3,
+        py: 2,
+        borderBottom: '1px solid #e9ecef',
+        bgcolor: '#fff',
+        flexShrink: 0,
+      }}
+    >
+      <Stack direction="row" alignItems="center" spacing={1}>
         {onBack && (
-          <button className={styles.backBtn} onClick={onBack} aria-label="Back">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
+          <IconButton onClick={onBack} aria-label="Back" size="small">
+            <ChevronRightIcon />
+          </IconButton>
         )}
-        <div className={styles.titleBlock}>
-          <div className={styles.title}>{title}</div>
-          {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
-        </div>
-      </div>
-      <div className={styles.headerRight}>
-        <div className={styles.doctorInfo}>
-          <span className={styles.doctorName}>{doctor.fullName}</span>
-          <span className={styles.doctorSpec}>{doctor.specialization}</span>
-        </div>
-        <div className={styles.avatar}>{doctor.initials}</div>
-      </div>
-    </header>
+        <Box>
+          <Typography sx={{ fontSize: 18, fontWeight: 700, color: '#1a1a2e' }}>
+            {title}
+          </Typography>
+          {subtitle && (
+            <Typography sx={{ fontSize: 13, color: '#868e96' }}>
+              {subtitle}
+            </Typography>
+          )}
+        </Box>
+      </Stack>
+      <Stack direction="row" alignItems="center" spacing={1.5}>
+        <Box sx={{ textAlign: 'right' }}>
+          <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#1a1a2e' }}>
+            {doctor.fullName}
+          </Typography>
+          <Typography sx={{ fontSize: 12, color: '#868e96' }}>
+            {doctor.specialization}
+          </Typography>
+        </Box>
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
+            bgcolor: 'primary.main',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 700,
+            fontSize: 14,
+          }}
+        >
+          {doctor.initials}
+        </Box>
+      </Stack>
+    </Box>
   );
-}
+};
+
+export default PageHeader;

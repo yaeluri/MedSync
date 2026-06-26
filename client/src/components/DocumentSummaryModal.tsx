@@ -1,6 +1,16 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Box,
+  Typography,
+  IconButton,
+  CircularProgress,
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import DescriptionIcon from '@mui/icons-material/Description';
 import { getDocumentSummary } from '../api/documents';
-import styles from './DocumentSummaryModal.module.css';
 
 interface Props {
   docId: string;
@@ -8,7 +18,7 @@ interface Props {
   onClose: () => void;
 }
 
-export default function DocumentSummaryModal({ docId, docName, onClose }: Props) {
+export const DocumentSummaryModal: React.FC<Props> = ({ docId, docName, onClose }) => {
   const [summaryText, setSummaryText] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -30,45 +40,56 @@ export default function DocumentSummaryModal({ docId, docName, onClose }: Props)
   }, [onClose]);
 
   return (
-    <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.modal} onClick={e => e.stopPropagation()}>
-        <div className={styles.header}>
-          <div className={styles.headerLeft}>
-            <div className={styles.iconWrap}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <polyline points="9 15 11 17 15 13"/>
-              </svg>
-            </div>
-            <div>
-              <div className={styles.title}>סיכום בינה מלאכותית</div>
-              <div className={styles.subtitle}>{docName}</div>
-            </div>
-          </div>
-          <button className={styles.closeBtn} onClick={onClose} aria-label="סגור">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
-
-        <div className={styles.body}>
-          {loading && (
-            <div className={styles.loadingWrap}>
-              <span className={styles.spinner} />
-              <span>טוען סיכום...</span>
-            </div>
-          )}
-          {!loading && error && (
-            <p className={styles.errorText}>שגיאה בטעינת הסיכום. נסה שנית.</p>
-          )}
-          {!loading && !error && (
-            <p className={styles.summaryText}>{summaryText}</p>
-          )}
-        </div>
-      </div>
-    </div>
+    <Dialog open onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pr: 6 }}>
+        <Box
+          sx={{
+            width: 32,
+            height: 32,
+            borderRadius: '8px',
+            bgcolor: '#eef2ff',
+            color: 'primary.main',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <DescriptionIcon fontSize="small" />
+        </Box>
+        <Box>
+          <Typography sx={{ fontWeight: 700, fontSize: 15 }}>סיכום בינה מלאכותית</Typography>
+          <Typography sx={{ fontSize: 12, color: '#868e96' }}>{docName}</Typography>
+        </Box>
+        <IconButton
+          onClick={onClose}
+          aria-label="סגור"
+          size="small"
+          sx={{ position: 'absolute', right: 12, top: 12 }}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent dividers>
+        {loading && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 3, justifyContent: 'center' }}>
+            <CircularProgress size={24} />
+            <Typography sx={{ color: '#868e96' }}>טוען סיכום...</Typography>
+          </Box>
+        )}
+        {!loading && error && (
+          <Typography sx={{ color: 'error.main', py: 2 }}>
+            שגיאה בטעינת הסיכום. נסה שנית.
+          </Typography>
+        )}
+        {!loading && !error && (
+          <Typography sx={{ lineHeight: 1.8, color: '#1a1a2e', direction: 'rtl' }}>
+            {summaryText}
+          </Typography>
+        )}
+      </DialogContent>
+    </Dialog>
   );
-}
+};
+
+export default DocumentSummaryModal;
