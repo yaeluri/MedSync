@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react';
-import { getDocumentSummary } from '../api/documents';
-import styles from './DocumentSummaryModal.module.css';
+import {
+  Dialog,
+  DialogContent,
+  Box,
+  Typography,
+  IconButton,
+  Button,
+  CircularProgress,
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import DownloadIcon from '@mui/icons-material/Download';
+import DescriptionIcon from '@mui/icons-material/Description';
+import { getDocumentSummary, downloadDocument } from '../api/documents';
 
 interface Props {
   docId: string;
@@ -22,53 +33,103 @@ export default function DocumentSummaryModal({ docId, docName, onClose }: Props)
     return () => { active = false; };
   }, [docId]);
 
-  // Close on Escape
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
-
   return (
-    <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.modal} onClick={e => e.stopPropagation()}>
-        <div className={styles.header}>
-          <div className={styles.headerLeft}>
-            <div className={styles.iconWrap}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <polyline points="9 15 11 17 15 13"/>
-              </svg>
-            </div>
-            <div>
-              <div className={styles.title}>סיכום בינה מלאכותית</div>
-              <div className={styles.subtitle}>{docName}</div>
-            </div>
-          </div>
-          <button className={styles.closeBtn} onClick={onClose} aria-label="סגור">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
+    <Dialog
+      open
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      dir="rtl"
+      slotProps={{ paper: { sx: { borderRadius: 3, maxHeight: '80vh' } } }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 1.5,
+          px: 2.5,
+          py: 2,
+          borderBottom: '1px solid #e9ecef',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+          <Box
+            sx={{
+              width: 38,
+              height: 38,
+              borderRadius: '10px',
+              bgcolor: '#f3f0ff',
+              color: '#7048e8',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <DescriptionIcon fontSize="small" />
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#1a1a2e' }}>
+              סיכום בינה מלאכותית
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: 12,
+                color: '#868e96',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: 360,
+              }}
+            >
+              {docName}
+            </Typography>
+          </Box>
+        </Box>
 
-        <div className={styles.body}>
-          {loading && (
-            <div className={styles.loadingWrap}>
-              <span className={styles.spinner} />
-              <span>טוען סיכום...</span>
-            </div>
-          )}
-          {!loading && error && (
-            <p className={styles.errorText}>שגיאה בטעינת הסיכום. נסה שנית.</p>
-          )}
-          {!loading && !error && (
-            <p className={styles.summaryText}>{summaryText}</p>
-          )}
-        </div>
-      </div>
-    </div>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<DownloadIcon />}
+            onClick={() => downloadDocument(docId, docName)}
+            sx={{ whiteSpace: 'nowrap', gap: 0.5, '& .MuiButton-startIcon': { m: 0 } }}
+          >
+            הורד מקור
+          </Button>
+          <IconButton onClick={onClose} aria-label="סגור" size="small">
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      </Box>
+
+      <DialogContent sx={{ p: 3 }}>
+        {loading && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: '#868e96' }}>
+            <CircularProgress size={18} />
+            <Typography sx={{ fontSize: 14 }}>טוען סיכום...</Typography>
+          </Box>
+        )}
+        {!loading && error && (
+          <Typography sx={{ color: '#c92a2a', fontSize: 14 }}>
+            שגיאה בטעינת הסיכום. נסה שנית.
+          </Typography>
+        )}
+        {!loading && !error && (
+          <Typography
+            sx={{
+              fontSize: 14,
+              lineHeight: 1.75,
+              color: '#212529',
+              textAlign: 'right',
+              whiteSpace: 'pre-wrap',
+            }}
+          >
+            {summaryText}
+          </Typography>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

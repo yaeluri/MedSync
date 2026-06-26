@@ -1,8 +1,14 @@
 import { useState, useRef, ChangeEvent } from 'react';
-import { uploadDocument } from '../api/documents';
+import { uploadDocument, getDocumentSummary } from '../api/documents';
+import { getMedicalDocument } from '../api/medical-documents';
 import { loadSession } from '../api/auth';
 
-type UploadStatus = 'idle' | 'uploading' | 'done' | 'error';
+type UploadStatus = 'idle' | 'uploading' | 'processing' | 'done' | 'error';
+
+const POLL_INTERVAL_MS = 2000;
+const MAX_POLLS = 60; // ~2 minutes
+
+const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 
 export function useDocumentUpload(patientId?: string) {
   const [file, setFile] = useState<File | null>(null);
@@ -31,11 +37,32 @@ export function useDocumentUpload(patientId?: string) {
     setUploadedId(null);
     setUploadedFileName(null);
     try {
-      const data = await uploadDocument(file, patientId, session?.userId);
-      setSummary(data.summary || 'No summary returned.');
-      setUploadedId(data.id || null);
-      setUploadedFileName(data.filename || file.name);
-      setStatus('done');
+      // 1. Upload — server responds immediately with a PROCESSING document.
+      const { id, filename } = await uploadDocument(file, patientId, session?.userId);
+      setUploadedId(id);
+      setUploadedFileName(filename);
+      setStatus('processing');
+
+      // 2. Poll the document status until analysis completes.
+      for (let attempt = 0; attempt < MAX_POLLS; attempt++) {
+        await delay(POLL_INTERVAL_MS);
+        const doc = await getMedicalDocument(id);
+        if (doc.summaryStatus === 'PROCESSING') continue;
+
+        if (doc.summaryStatus === 'SUCCESS') {
+          const result = await getDocumentSummary(id);
+          setSummary(result.summaryText || 'No summary available.');
+          setStatus('done');
+        } else {
+          setSummary('Failed to process document. Please try again.');
+          setStatus('error');
+        }
+        return;
+      }
+
+      // Timed out waiting for the job to finish.
+      setSummary('Document is still being processed. Check back shortly.');
+      setStatus('error');
     } catch {
       setSummary('Failed to process document. Please try again.');
       setStatus('error');

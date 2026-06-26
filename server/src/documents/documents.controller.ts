@@ -56,17 +56,36 @@ export class DocumentsController {
       throw new BadRequestException('File size exceeds 10 MB limit');
     }
 
+    if (!patientId || !uploadedByUserId) {
+      throw new BadRequestException(
+        'patientId and uploadedByUserId are required',
+      );
+    }
+
     try {
       // Multer decodes multipart filenames as Latin-1; re-encode as UTF-8 for Hebrew/non-ASCII names
-      const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
-      const result = await this.documentsService.processDocument(
+      const originalName = Buffer.from(file.originalname, 'latin1').toString(
+        'utf8',
+      );
+
+      // Save the file immediately and respond; analysis runs in the background.
+      const pending = await this.documentsService.createPendingDocument(
         file.buffer,
         file.mimetype,
         originalName,
         patientId,
         uploadedByUserId,
       );
-      return result;
+
+      // Fire-and-forget background analysis (OCR + summary). Errors are handled internally.
+      void this.documentsService.analyzeDocument(
+        pending.id,
+        file.buffer,
+        file.mimetype,
+        originalName,
+      );
+
+      return pending;
     } catch (err) {
       if (err instanceof HttpException) throw err;
       const detail = err instanceof Error ? err.message : String(err);

@@ -1,11 +1,11 @@
 import { apiRequest } from './client';
+import { SummaryStatus } from './medical-documents';
 
 export interface DocumentUploadResult {
   id: string;
   filename: string;
-  extractedText: string;
-  summary: string;
-  patientId: string | null;
+  status: SummaryStatus;
+  patientId: string;
 }
 
 export function uploadDocument(

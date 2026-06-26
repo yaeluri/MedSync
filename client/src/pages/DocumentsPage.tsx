@@ -1,191 +1,349 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useDocumentUpload } from '../hooks/useDocumentUpload';
+import {
+  Box,
+  Typography,
+  Button,
+  Card,
+  Chip,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Stack,
+  LinearProgress,
+  CircularProgress,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import SearchIcon from '@mui/icons-material/Search';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { getPatientById, Patient } from '../api/patients';
-import { downloadDocument } from '../api/documents';
+import { uploadDocument } from '../api/documents';
+import { loadSession } from '../api/auth';
+import {
+  getMedicalDocuments,
+  MedicalDocument,
+  DocumentTypeEnum,
+  SummaryStatus,
+} from '../api/medical-documents';
 import { useAsyncData } from '../hooks/useAsyncData';
-import PageHeader from '../components/PageHeader';
+import { useCameraStream } from '../hooks/useCameraStream';
+import { UploadModal } from '../components/patientDashboard/UploadModal';
 import DocumentSummaryModal from '../components/DocumentSummaryModal';
-import styles from './DocumentsPage.module.css';
+
+type FilterKey = 'all' | DocumentTypeEnum;
+
+const FILTERS: { key: FilterKey; label: string }[] = [
+  { key: 'all', label: 'הכל' },
+  { key: 'LAB_RESULT', label: 'בדיקות מעבדה' },
+  { key: 'REFERRAL', label: 'הפניות' },
+  { key: 'DISCHARGE_SUMMARY', label: 'סיכומים' },
+];
+
+const DOC_TYPE_LABELS: Record<DocumentTypeEnum, string> = {
+  LAB_RESULT: 'בדיקת מעבדה',
+  REFERRAL: 'הפניה',
+  DISCHARGE_SUMMARY: 'סיכום שחרור',
+  IMAGING: 'דימות',
+  PRESCRIPTION: 'מרשם',
+  OTHER: 'אחר',
+};
+
+function fileBadge(doc: MedicalDocument): { label: string; color: string; bg: string } {
+  const fmt = (doc.fileFormat || doc.fileName.split('.').pop() || '').toLowerCase();
+  if (fmt.includes('pdf')) return { label: 'PDF', color: '#e03131', bg: '#fff0f0' };
+  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'img', 'image', 'tiff'].some(x => fmt.includes(x)))
+    return { label: 'IMG', color: '#1971c2', bg: '#e7f1ff' };
+  if (['doc', 'docx'].some(x => fmt.includes(x))) return { label: 'DOC', color: '#2f6f4f', bg: '#e7f6ee' };
+  return { label: (fmt || 'FILE').toUpperCase().slice(0, 4), color: '#495057', bg: '#f1f3f5' };
+}
+
+function statusChip(status: SummaryStatus): { label: string; color: string; bg: string } {
+  if (status === 'SUCCESS') return { label: 'נותח', color: '#2f9e44', bg: '#ebfbee' };
+  if (status === 'PROCESSING') return { label: 'מעבד', color: '#e8590c', bg: '#fff4e6' };
+  return { label: 'נכשל', color: '#e03131', bg: '#fff0f0' };
+}
+
+function formatDate(value: string): string {
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('he-IL', { day: '2-digit', month: 'short', year: 'numeric' });
+}
 
 export default function DocumentsPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { file, status, summary, uploadedId, uploadedFileName, fileInputRef, selectFile, upload, reset } =
-    useDocumentUpload(id);
+  const session = loadSession();
+  const isDoctorView = !!id;
+  // Tenant scope: doctors open a patient via the route param; patients see only their own records.
+  const patientId = id ?? session?.patientId;
 
-  const { data: patient } = useAsyncData<Patient>(
-    () => getPatientById(id!),
-    [id],
-  );
-
-  const isUploading = status === 'uploading';
-  const isDone = status === 'done';
-  const isError = status === 'error';
-
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<FilterKey>('all');
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [summaryModal, setSummaryModal] = useState<{ id: string; name: string } | null>(null);
 
-  const patientName = patient
-    ? `${patient.firstName} ${patient.lastName}`
-    : 'מטופל';
+  const { data: patient } = useAsyncData<Patient | null>(
+    () => (patientId ? getPatientById(patientId) : Promise.resolve(null)),
+    [patientId],
+  );
+
+  const { data: documents, status } = useAsyncData<MedicalDocument[]>(
+    () => (patientId ? getMedicalDocuments(patientId) : Promise.resolve([])),
+    [patientId, refreshKey],
+  );
+
+  // Poll the list while any document is still being analyzed in the background.
+  const hasProcessing = (documents ?? []).some(d => d.summaryStatus === 'PROCESSING');
+  useEffect(() => {
+    if (!hasProcessing) return;
+    const t = setInterval(() => setRefreshKey(k => k + 1), 3000);
+    return () => clearInterval(t);
+  }, [hasProcessing]);
+
+  const { videoRef, canvasRef, cameraMode, setCameraMode, cameraError, stopCamera, capture } =
+    useCameraStream();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const closeUpload = () => {
+    stopCamera();
+    setUploadOpen(false);
+  };
+
+  const handleUpload = async (file: File) => {
+    if (!patientId) return;
+    setUploading(true);
+    try {
+      await uploadDocument(file, patientId, session?.userId);
+      setRefreshKey(k => k + 1);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    closeUpload();
+    handleUpload(file);
+    e.target.value = '';
+  };
+
+  const handleCapture = () => {
+    capture(file => {
+      setUploadOpen(false);
+      handleUpload(file);
+    });
+  };
+
+  const patientName = patient ? `${patient.firstName} ${patient.lastName}` : 'מטופל';
+  const title = isDoctorView ? `מסמכים — ${patientName}` : 'המסמכים הרפואיים שלי';
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return (documents ?? []).filter(d => {
+      if (filter !== 'all' && d.documentType !== filter) return false;
+      if (!q) return true;
+      const typeLabel = d.documentType ? DOC_TYPE_LABELS[d.documentType] : '';
+      return d.fileName.toLowerCase().includes(q) || typeLabel.toLowerCase().includes(q);
+    });
+  }, [documents, filter, query]);
+
+  const stateMsg = (text: string) => (
+    <Typography sx={{ textAlign: 'center', color: '#868e96', fontSize: 14, py: 8 }}>{text}</Typography>
+  );
 
   return (
-    <div className={styles.main}>
-      <PageHeader
-        title={`מסמכים — ${patientName}`}
-        subtitle="העלה וסכם מסמכים רפואיים"
-        onBack={id ? () => navigate(`/patients/${id}`) : undefined}
-      />
+    <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', bgcolor: 'background.default' }}>
+      {uploading && <LinearProgress sx={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1300 }} />}
+      {/* Top bar */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          px: 4,
+          height: 72,
+          bgcolor: '#fff',
+          borderBottom: '1px solid #e9ecef',
+          flexShrink: 0,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          {isDoctorView && (
+            <IconButton onClick={() => navigate(`/patients/${id}`)} aria-label="חזרה" size="small">
+              <ArrowForwardIosIcon fontSize="small" />
+            </IconButton>
+          )}
+          <Typography sx={{ fontSize: 22, fontWeight: 800, color: '#1a1a2e' }}>{title}</Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setUploadOpen(true)}
+          sx={{ borderRadius: 3, px: 2.5, py: 1.2, fontWeight: 700 }}
+        >
+          הוסף חדש
+        </Button>
+      </Box>
 
-      <div className={styles.body}>
-        <div className={styles.leftColumn}>
-          <div className={styles.sectionTitle}>העלאת מסמך</div>
-
-          <div
-            className={styles.dropZone}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <svg className={styles.dropZoneIcon} width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
-            <p className={styles.dropZoneText}>לחץ להעלאה או גרור לכאן</p>
-            <p className={styles.dropZoneSub}>PDF או קבצי תמונה</p>
-          </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,image/*"
-            onChange={selectFile}
-            style={{ display: 'none' }}
+      {/* Body */}
+      <Box sx={{ flex: 1, overflow: 'auto', px: 4, py: 3.5 }}>
+        {/* Toolbar */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3.5, flexWrap: 'wrap' }}>
+          <TextField
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="חיפוש לפי רופא או סוג..."
+            sx={{
+              flex: 1,
+              minWidth: 280,
+              '& .MuiOutlinedInput-root': { borderRadius: 999, bgcolor: '#fff' },
+            }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: '#adb5bd' }} />
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
+          <Stack direction="row" spacing={1.25} sx={{ flexShrink: 0 }}>
+            {FILTERS.map(f => {
+              const active = filter === f.key;
+              return (
+                <Chip
+                  key={f.key}
+                  label={f.label}
+                  onClick={() => setFilter(f.key)}
+                  variant={active ? 'filled' : 'outlined'}
+                  color={active ? 'primary' : 'default'}
+                  sx={{
+                    borderRadius: 999,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    px: 1,
+                    height: 38,
+                    bgcolor: active ? undefined : '#fff',
+                  }}
+                />
+              );
+            })}
+          </Stack>
+        </Box>
 
-          {file && (
-            <div className={styles.fileSelected}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-              </svg>
-              {file.name}
-            </div>
-          )}
-
-          <div className={styles.btnRow}>
-            <button
-              className={file && !isUploading ? styles.uploadBtn : styles.uploadBtnDisabled}
-              onClick={upload}
-              disabled={!file || isUploading}
-            >
-              {isUploading ? 'מעבד...' : 'העלאה וסיכום'}
-            </button>
-            {(file || summary) && (
-              <button className={styles.clearBtn} onClick={reset}>נקה</button>
-            )}
-          </div>
-
-          {(isDone || isError) && (
-            <div className={styles.summaryCard}>
-              <div className={styles.summaryHeader}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b5bdb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12" y2="12"/>
-                  <line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-                <span className={styles.summaryTitle}>סיכום בינה מלאכותית</span>
-                {isDone && <span className={styles.summaryBadge}>הושלם</span>}
-                {isDone && uploadedId && (
-                  <button
-                    className={styles.downloadBtn}
-                    title="Download uploaded file"
-                    onClick={() => downloadDocument(uploadedId, uploadedFileName ?? 'document')}
+        {/* States / grid */}
+        {!patientId
+          ? stateMsg('לא נמצא מטופל מחובר.')
+          : status === 'loading' && !documents
+          ? stateMsg('טוען מסמכים...')
+          : status === 'error' && !documents
+          ? stateMsg('טעינת המסמכים נכשלה.')
+          : filtered.length === 0
+          ? stateMsg('לא נמצאו מסמכים תואמים.')
+          : (
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 2.5 }}>
+              {filtered.map(doc => {
+                const badge = fileBadge(doc);
+                const st = statusChip(doc.summaryStatus);
+                return (
+                  <Card
+                    key={doc.id}
+                    elevation={0}
+                    onClick={() => setSummaryModal({ id: doc.id, name: doc.fileName })}
+                    sx={{
+                      p: 2.5,
+                      borderRadius: 4,
+                      border: '1px solid #eef0f3',
+                      cursor: 'pointer',
+                      boxShadow: '0 1px 3px rgba(16,24,40,0.04)',
+                      transition: 'all .18s',
+                      '&:hover': {
+                        boxShadow: '0 8px 24px rgba(16,24,40,0.1)',
+                        transform: 'translateY(-2px)',
+                        borderColor: '#dfe3ea',
+                      },
+                    }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                      <polyline points="7 10 12 15 17 10"/>
-                      <line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
-                    הורדה
-                  </button>
-                )}
-              </div>
-              <p className={`${styles.summaryText} ${isError ? styles.summaryError : ''}`}>
-                {summary}
-              </p>
-            </div>
+                    <Box sx={{ mb: 2.25 }}>
+                      <Chip
+                        label={badge.label}
+                        size="small"
+                        sx={{
+                          fontWeight: 800,
+                          fontSize: 11,
+                          letterSpacing: '.04em',
+                          color: badge.color,
+                          bgcolor: badge.bg,
+                          borderRadius: 2,
+                        }}
+                      />
+                    </Box>
+                    <Typography
+                      title={doc.fileName}
+                      sx={{
+                        fontSize: 16,
+                        fontWeight: 700,
+                        color: '#1a1a2e',
+                        mb: 0.75,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {doc.fileName}
+                    </Typography>
+                    <Typography sx={{ fontSize: 13, color: '#868e96', mb: 2 }}>
+                      {formatDate(doc.uploadedAt)}
+                      {doc.documentType ? ` • ${DOC_TYPE_LABELS[doc.documentType]}` : ''}
+                    </Typography>
+                    <Chip
+                      size="small"
+                      icon={
+                        doc.summaryStatus === 'PROCESSING' ? (
+                          <CircularProgress size={11} sx={{ color: st.color }} />
+                        ) : undefined
+                      }
+                      label={st.label}
+                      sx={{
+                        fontWeight: 800,
+                        fontSize: 11,
+                        letterSpacing: '.05em',
+                        color: st.color,
+                        bgcolor: st.bg,
+                        borderRadius: 2,
+                        '& .MuiChip-icon': { color: st.color, ml: '6px', mr: '-4px' },
+                      }}
+                    />
+                  </Card>
+                );
+              })}
+            </Box>
           )}
-        </div>
+      </Box>
 
-        {/* ── Right panel ── */}
-        <aside className={styles.rightPanel}>
-          <div className={styles.panelTabBar}>
-            <span className={styles.panelTab}>תובנות בינה מלאכותית</span>
-          </div>
-
-          <div className={styles.panelContent}>
-            {isUploading ? (
-              <p className={styles.processingText}>מנתח מסמך...</p>
-            ) : isDone ? (
-              <div className={styles.insightCard}>
-                <div className={styles.insightIconWrap}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
-                </div>
-                <div>
-                  <div className={styles.insightTitle}>תובנה MedSync</div>
-                  <div className={styles.insightText}>
-                    המסמך עובד בהצלחה. ראה את הסיכום משמאל.
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p className={styles.emptyState}>העלה מסמך לצפייה בתובנות.</p>
-            )}
-          </div>
-
-          {/* Existing documents for this patient */}
-          {patient && patient.documents && patient.documents.length > 0 && (
-            <div className={styles.existingDocsList}>
-              <div className={styles.existingDocsTitle}>מסמכים שהועלו</div>
-              {patient.documents.map(d => (
-                <div key={d.id} className={styles.existingDocRow}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#868e96" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                  </svg>
-                  <span className={styles.existingDocName} title={d.name}>{d.name}</span>
-                  <button
-                    className={styles.existingDocDownload}
-                    title="צפה בסיכום"
-                    onClick={() => setSummaryModal({ id: d.id, name: d.name })}
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"/>
-                      <line x1="12" y1="8" x2="12" y2="12"/>
-                      <line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                  </button>
-                  <button
-                    className={styles.existingDocDownload}
-                    title="הורדה"
-                    onClick={() => downloadDocument(d.id, d.name)}
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                      <polyline points="7 10 12 15 17 10"/>
-                      <line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </aside>
-      </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,image/*"
+        onChange={handleFileChange}
+        style={{ display: 'none' }}
+      />
+      <UploadModal
+        open={uploadOpen}
+        onClose={closeUpload}
+        cameraMode={cameraMode}
+        onStartCamera={() => setCameraMode(true)}
+        onStopCamera={stopCamera}
+        cameraError={cameraError}
+        videoRef={videoRef}
+        canvasRef={canvasRef}
+        onCapture={handleCapture}
+        onChooseFile={() => fileInputRef.current?.click()}
+      />
 
       {summaryModal && (
         <DocumentSummaryModal
@@ -194,6 +352,6 @@ export default function DocumentsPage() {
           onClose={() => setSummaryModal(null)}
         />
       )}
-    </div>
+    </Box>
   );
 }
