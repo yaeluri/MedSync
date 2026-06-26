@@ -1,70 +1,97 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Snackbar, Alert } from '@mui/material';
+import {
+  Alert, Autocomplete, Box, Button, Chip, CircularProgress,
+  MenuItem, Paper, Snackbar, Stack, TextField, Typography,
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import CloseIcon from '@mui/icons-material/Close';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import MedicationIcon from '@mui/icons-material/Medication';
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import PersonIcon from '@mui/icons-material/Person';
+import PhoneIcon from '@mui/icons-material/Phone';
+import StopIcon from '@mui/icons-material/Stop';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import {
-  summarizeText,
-  createVisit,
-  upsertVisitSummary,
-  addVisitDiagnosis,
-  addVisitMedicine,
-  updateVisit,
-  getVisit,
+  summarizeText, createVisit, upsertVisitSummary,
+  addVisitDiagnosis, addVisitMedicine, updateVisit, getVisit,
   VisitSummaryObject,
 } from '../api/visits';
 import { loadSession } from '../api/auth';
-import { getDiagnoses } from '../api/diagnoses';
-import { getMedicines } from '../api/medicines';
+import { getDiagnoses, Diagnosis } from '../api/diagnoses';
+import { getMedicines, Medicine } from '../api/medicines';
 import PageHeader from '../components/PageHeader';
-import styles from './VisitPage.module.css';
 
+// ── Types ───────────────────────────────────────────────────────────────────────────
+type ToastState = { severity: 'success' | 'error' | 'warning'; message: string } | null;
+type DiagnosisItem = { code: string; description: string };
+type MedicineItem = { name: string; dosage: string; frequency: string; duration: string; instructions?: string };
+
+// ── Styled layout components ─────────────────────────────────────────────────────────────────────
+const PageRoot = styled(Box)({
+  display: 'flex', flexDirection: 'column', flex: 1,
+  overflow: 'hidden', background: '#f8f9fa', direction: 'rtl',
+});
+
+const PatientInfoBar = styled(Box)({
+  display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+  padding: '8px 28px', background: '#f8f9fa',
+  borderBottom: '1px solid #e9ecef', flexShrink: 0,
+});
+
+const FormColumn = styled(Box)({
+  display: 'flex', flexDirection: 'column', flex: 1, overflowY: 'auto', padding: 24, gap: 16,
+});
+
+const FormCard = styled(Paper)({
+  borderRadius: 14, padding: 20, display: 'flex', flexDirection: 'column',
+  gap: 14, position: 'relative', overflow: 'visible',
+  border: '1px solid #e9ecef', boxShadow: 'none',
+});
+
+const AiPanel = styled(Box)({
+  width: '25%', minWidth: 220, flexShrink: 0,
+  borderRight: '1px solid #e9ecef', background: '#fff', display: 'flex', flexDirection: 'column',
+});
+
+const SummarySectionCard = styled(Box)({
+  background: '#fff', border: '1px solid #e9ecef', borderRadius: 10,
+  padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 6,
+});
+
+// ── Reusable section header ─────────────────────────────────────────────────────────────────────
+interface SectionHeaderProps { icon: React.ReactNode; label: string; color: string; bg: string; }
+const SectionHeader: React.FC<SectionHeaderProps> = ({ icon, label, color, bg }) => (
+  <Stack direction="row" sx={{ alignItems: 'center', gap: 1, borderBottom: '1px solid #f1f3f5', pb: 1, mb: 0.5 }}>
+    <Box sx={{ width: 30, height: 30, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: bg, color, flexShrink: 0 }}>
+      {icon}
+    </Box>
+    <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color }}>
+      {label}
+    </Typography>
+  </Stack>
+);
+
+// ── Constants ──────────────────────────────────────────────────────────────────────────────
 const formatTime = (s: number) =>
   `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
-const SUMMARY_SECTIONS: {
-  key: keyof VisitSummaryObject;
-  label: string;
-  icon: React.ReactNode;
-  color: string;
-  bg: string;
-}[] = [
-  {
-    key: 'patientComplaints',
-    label: 'תלונות המטופל',
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-      </svg>
-    ),
-    color: '#e64980',
-    bg: '#fff0f6',
-  },
-  {
-    key: 'diagnosis',
-    label: 'אבחנה',
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-      </svg>
-    ),
-    color: '#7048e8',
-    bg: '#f3f0ff',
-  },
-  {
-    key: 'doctorsRecommendations',
-    label: 'המלצות הרופא',
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 11l3 3L22 4"/>
-        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-      </svg>
-    ),
-    color: '#2f9e44',
-    bg: '#ebfbee',
-  },
+const SUMMARY_SECTIONS: Array<{ key: keyof VisitSummaryObject; label: string; icon: React.ReactNode; color: string; bg: string }> = [
+  { key: 'patientComplaints',      label: 'תלונות המטופל', icon: <FavoriteIcon sx={{ fontSize: 14 }} />,            color: '#e64980', bg: '#fff0f6' },
+  { key: 'diagnosis',              label: 'אבחנה',          icon: <MonitorHeartIcon sx={{ fontSize: 14 }} />,        color: '#7048e8', bg: '#f3f0ff' },
+  { key: 'doctorsRecommendations', label: 'המלצות הרופא', icon: <TaskAltIcon sx={{ fontSize: 14 }} />, color: '#2f9e44', bg: '#ebfbee' },
 ];
 
-export default function VisitPage() {
+const RTL_INPUT = { dir: 'rtl' as const, style: { textAlign: 'right' as const } };
+
+// ── Main component ───────────────────────────────────────────────────────────────────────────
+const VisitPage: React.FC = () => {
   const navigate = useNavigate();
   const { id: patientId, visitId } = useParams<{ id: string; visitId: string }>();
   const session = loadSession();
@@ -77,9 +104,7 @@ export default function VisitPage() {
   // Read-only when a patient (not a caregiver) opens a past visit.
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [visitDate, setVisitDate] = useState<string | null>(null);
-  const [toast, setToast] = useState<
-    { severity: 'success' | 'error' | 'warning'; message: string } | null
-  >(null);
+  const [toast, setToast] = useState<ToastState>(null);
 
   // Live AI summary object from the server.
   const [liveSummary, setLiveSummary] = useState<VisitSummaryObject | null>(null);
@@ -100,40 +125,37 @@ export default function VisitPage() {
   const [followUpDate, setFollowUpDate] = useState('');
   const [referralNotes, setReferralNotes] = useState('');
   // Diagnoses list
-  const [diagnosesList, setDiagnosesList] = useState<Array<{ code: string; description: string }>>([]);
+  const [diagnosesList, setDiagnosesList] = useState<DiagnosisItem[]>([]);
   const [diagnosisSearch, setDiagnosisSearch] = useState('');
-  const [diagnosisOptions, setDiagnosisOptions] = useState<Array<{ id: string; code: string; description: string }>>([]);
-  const [diagnosisDropOpen, setDiagnosisDropOpen] = useState(false);
+  const [diagnosisOptions, setDiagnosisOptions] = useState<Diagnosis[]>([]);
   // Medicines list
-  const [medicinesList, setMedicinesList] = useState<Array<{ name: string; dosage: string; frequency: string; duration: string; instructions?: string }>>([]);
+  const [medicinesList, setMedicinesList] = useState<MedicineItem[]>([]);
   const [medicineSearch, setMedicineSearch] = useState('');
-  const [medicineOptions, setMedicineOptions] = useState<Array<{ id: string; name: string }>>([]);
-  const [medicineDrop0pen, setMedicineDrop0pen] = useState(false);
-  const [selectedMedicineName, setSelectedMedicineName] = useState('');
+  const [medicineOptions, setMedicineOptions] = useState<Medicine[]>([]);
   const [medicineDosage, setMedicineDosage] = useState('');
   const [medicineFrequency, setMedicineFrequency] = useState('');
   const [medicineDuration, setMedicineDuration] = useState('');
 
-  // Debounced diagnosis search
+  // Pre-load options on first render so the dropdown is ready immediately on click
   useEffect(() => {
-    if (!diagnosisSearch.trim()) { setDiagnosisOptions([]); setDiagnosisDropOpen(false); return; }
+    getDiagnoses().then(res => setDiagnosisOptions(res.slice(0, 30))).catch(() => {});
+    getMedicines().then(res => setMedicineOptions(res.slice(0, 30))).catch(() => {});
+  }, []);
+
+  // Debounced diagnosis search (runs when user types; keeps pre-loaded list when empty)
+  useEffect(() => {
+    if (!diagnosisSearch.trim()) return;
     const t = window.setTimeout(() => {
-      getDiagnoses(diagnosisSearch).then(res => {
-        setDiagnosisOptions(res.slice(0, 10));
-        setDiagnosisDropOpen(res.length > 0);
-      }).catch(() => {});
+      getDiagnoses(diagnosisSearch).then(res => setDiagnosisOptions(res.slice(0, 10))).catch(() => {});
     }, 250);
     return () => window.clearTimeout(t);
   }, [diagnosisSearch]);
 
   // Debounced medicine search
   useEffect(() => {
-    if (!medicineSearch.trim()) { setMedicineOptions([]); setMedicineDrop0pen(false); return; }
+    if (!medicineSearch.trim()) return;
     const t = window.setTimeout(() => {
-      getMedicines(medicineSearch).then(res => {
-        setMedicineOptions(res.slice(0, 10));
-        setMedicineDrop0pen(res.length > 0);
-      }).catch(() => {});
+      getMedicines(medicineSearch).then(res => setMedicineOptions(res.slice(0, 10))).catch(() => {});
     }, 250);
     return () => window.clearTimeout(t);
   }, [medicineSearch]);
@@ -226,12 +248,15 @@ export default function VisitPage() {
     return () => { active = false; };
   }, [visitId]);
 
-  const handleRecord = () => {
-    if (isRecording) {
-      stop();
-    } else {
-      start();
-    }
+  const handleRecord = () => isRecording ? stop() : start();
+
+  const handleAddMedicine = () => {
+    const name = medicineSearch.trim();
+    if (!name || !medicineDosage.trim() || !medicineFrequency.trim() || !medicineDuration.trim()) return;
+    setMedicinesList(prev => [...prev, {
+      name, dosage: medicineDosage.trim(), frequency: medicineFrequency.trim(), duration: medicineDuration.trim(),
+    }]);
+    setMedicineSearch(''); setMedicineDosage(''); setMedicineFrequency(''); setMedicineDuration('');
   };
 
   const handleSave = async () => {
@@ -394,526 +419,305 @@ export default function VisitPage() {
   }, [subjective, isReadOnly]);
 
   return (
-    <div className={styles.main}>
-        {/* Header */}
-        <PageHeader
-          title={isReadOnly ? 'ביקור קודם' : 'ביקור פעיל'}
-          subtitle={
-            isLoadingVisit ? 'טוען...'
-            : isReadOnly ? visitDate ?? 'צפייה בלבד'
-            : isRecording ? 'מקליט ומתעד...' : isProcessing ? 'מעבד...' : 'מוכן'
-          }
-          onBack={() => navigate(-1)}
-        />
+    <PageRoot>
+      <PageHeader
+        title={isReadOnly ? 'ביקור קודם' : 'ביקור פעיל'}
+        subtitle={
+          isLoadingVisit ? 'טוען...'
+          : isReadOnly ? visitDate ?? 'צפייה בלבד'
+          : isRecording ? 'מקליט ומתעד...'
+          : isProcessing ? 'מעבד...'
+          : 'מוכן'
+        }
+        onBack={() => navigate(-1)}
+      />
 
-        {/* Patient context bar */}
-        {patientInfo && (
-          <div className={styles.patientBar}>
-            <div className={styles.patientBarName}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-              </svg>
-              {patientInfo.name}
-            </div>
-            {patientInfo.idNumber && <span className={styles.patientBarChip}>ID: {patientInfo.idNumber}</span>}
-            {patientInfo.phone && (
-              <span className={styles.patientBarChip}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 12.31 19.79 19.79 0 0 1 1.1 3.65 2 2 0 0 1 3.08 1.5h3a2 2 0 0 1 2 1.72c.13 1 .38 1.98.74 2.91a2 2 0 0 1-.45 2.11L7.09 9.5a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.93.36 1.91.61 2.91.74A2 2 0 0 1 22 16.92z"/>
-                </svg>
-                {patientInfo.phone}
-              </span>
+      {/* Patient info bar */}
+      {patientInfo && (
+        <PatientInfoBar>
+          <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
+            <PersonIcon sx={{ fontSize: 14 }} />
+            <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{patientInfo.name}</Typography>
+          </Stack>
+          {patientInfo.idNumber && <Chip label={`ID: ${patientInfo.idNumber}`} size="small" variant="outlined" sx={{ height: 24, fontSize: 12 }} />}
+          {patientInfo.phone && <Chip icon={<PhoneIcon sx={{ fontSize: 12 }} />} label={patientInfo.phone} size="small" variant="outlined" sx={{ height: 24, fontSize: 12 }} />}
+          {patientInfo.dob && <Chip label={`DOB: ${patientInfo.dob}`} size="small" variant="outlined" sx={{ height: 24, fontSize: 12 }} />}
+          {patientInfo.hmo && <Chip label={`HMO: ${patientInfo.hmo}`} size="small" variant="outlined" sx={{ height: 24, fontSize: 12 }} />}
+          {patientInfo.bloodType && <Chip label={`🩸 ${patientInfo.bloodType}`} size="small" sx={{ height: 24, fontSize: 12, background: '#fff5f5', color: '#e03131', border: '1px solid #ffc9c9' }} />}
+        </PatientInfoBar>
+      )}
+
+      {/* Body layout */}
+      <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {/* ── Right: Visit form ── */}
+        <FormColumn>
+          <FormCard>
+            {/* Processing overlay */}
+            {isProcessing && (
+              <Box sx={{ position: 'absolute', inset: 0, borderRadius: '14px', background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(3px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1.5, zIndex: 10 }}>
+                <CircularProgress size={24} />
+                <Typography sx={{ fontSize: 15, fontWeight: 600, color: '#3b5bdb' }}>מתמלל שמע...</Typography>
+              </Box>
             )}
-            {patientInfo.dob && <span className={styles.patientBarChip}>DOB: {patientInfo.dob}</span>}
-            {patientInfo.hmo && <span className={styles.patientBarChip}>HMO: {patientInfo.hmo}</span>}
-            {patientInfo.bloodType && <span className={styles.patientBarChip} style={{ background: '#fff5f5', color: '#e03131' }}>🩸 {patientInfo.bloodType}</span>}
-          </div>
-        )}
 
-        {/* Body */}
-        <div className={styles.body}>
-          {/* ── Right: Visit Note ── */}
-          <div className={styles.leftColumn}>
-            <div className={`${styles.noteForm} ${isProcessing ? styles.noteFormProcessing : ''}`}>
+            {/* Form title row */}
+            <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+              <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#868e96', letterSpacing: '0.08em', textTransform: 'uppercase', flex: 1 }}>
+                רשומת ביקור
+              </Typography>
+              <Chip label="טיוטא" size="small" sx={{ fontSize: 11, fontWeight: 600, color: '#e8590c', background: '#fff3e6', border: 'none', height: 22 }} />
               {isProcessing && (
-                <div className={styles.formOverlay}>
-                  <span className={styles.spinner} />
-                  <span className={styles.formOverlayText}>מתמלל שמע...</span>
-                </div>
+                <Chip
+                  icon={<CircularProgress size={10} sx={{ color: '#3b5bdb !important' }} />}
+                  label="מתמלל..." size="small"
+                  sx={{ fontSize: 11, fontWeight: 600, color: '#3b5bdb', background: '#eef2ff', height: 22 }}
+                />
               )}
-              <div className={styles.noteTitleRow}>
-                <span className={styles.noteLabel}>רשומת ביקור</span>
-                <span className={styles.draftBadge}>טיוטא</span>
-                {isProcessing && (
-                  <span className={styles.transcribingBadge}>
-                    <span className={`${styles.spinner} ${styles.spinnerSm}`} />
-                    מתמלל...
-                  </span>
-                )}
-                {!isReadOnly && <button className={styles.micBtn} onClick={handleRecord} title="Toggle recording">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                    <line x1="12" y1="19" x2="12" y2="23"/>
-                    <line x1="8" y1="23" x2="16" y2="23"/>
-                  </svg>
-                </button>}
-              </div>
+              {!isReadOnly && (
+                <Button size="small" variant="outlined" onClick={handleRecord}
+                  sx={{ minWidth: 36, width: 36, height: 36, p: 0, borderRadius: '8px', borderColor: '#e9ecef', color: '#3b5bdb', '&:hover': { background: '#eef2ff', borderColor: '#3b5bdb' } }}>
+                  <KeyboardVoiceIcon sx={{ fontSize: 18 }} />
+                </Button>
+              )}
+            </Stack>
 
-              {/* Visit Details */}
-              <div className={styles.formSectionHeader}>
-                <span className={styles.formSectionIcon} style={{ background: '#eef2ff', color: '#3b5bdb' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                    <line x1="16" y1="13" x2="8" y2="13"/>
-                    <line x1="16" y1="17" x2="8" y2="17"/>
-                  </svg>
-                </span>
-                <span className={styles.formSectionLabel} style={{ color: '#3b5bdb' }}>פרטי ביקור</span>
-              </div>
+            {/* ─ פרטי ביקור ─ */}
+            <SectionHeader icon={<AssignmentIcon sx={{ fontSize: 16 }} />} label="פרטי ביקור" color="#3b5bdb" bg="#eef2ff" />
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+              <TextField select size="small" fullWidth label="סוג ביקור"
+                value={visitType} onChange={e => setVisitType(e.target.value)}
+                disabled={isReadOnly} slotProps={{ inputLabel: { shrink: true } }}>
+                <MenuItem value="">בחר סוג...</MenuItem>
+                <MenuItem value="REGULAR">רגיל</MenuItem>
+                <MenuItem value="EMERGENCY">חירום</MenuItem>
+                <MenuItem value="FOLLOW_UP">מעקב</MenuItem>
+              </TextField>
+              <TextField type="date" size="small" fullWidth label="תאריך מעקב"
+                value={followUpDate} onChange={e => setFollowUpDate(e.target.value)}
+                disabled={isReadOnly} slotProps={{ inputLabel: { shrink: true } }} />
+            </Box>
+            <TextField multiline rows={2} size="small" fullWidth label="הערות הפניה"
+              placeholder="הערות הפניה..." value={referralNotes}
+              onChange={e => setReferralNotes(e.target.value)} disabled={isReadOnly}
+              slotProps={{ inputLabel: { shrink: true }, htmlInput: RTL_INPUT }} />
 
-              {/* Visit Metadata — top of form */}
-              <div className={styles.visitMetaGrid}>
-                <div className={styles.field}>
-                  <label className={styles.fieldLabel}>סוג ביקור</label>
-                  <select
-                    className={styles.selectInput}
-                    value={visitType}
-                    onChange={e => setVisitType(e.target.value)}
-                    disabled={isReadOnly}
-                  >
-                    <option value="">בחר סוג...</option>
-                    <option value="REGULAR">רגיל</option>
-                    <option value="EMERGENCY">חירום</option>
-                    <option value="FOLLOW_UP">מעקב</option>
-                  </select>
-                </div>
-                <div className={styles.field}>
-                  <label className={styles.fieldLabel}>תאריך מעקב</label>
-                  <input
-                    className={styles.textInput}
-                    type="date"
-                    value={followUpDate}
-                    onChange={e => setFollowUpDate(e.target.value)}
-                    disabled={isReadOnly}
-                    readOnly={isReadOnly}
-                  />
-                </div>
-              </div>
-              <div className={styles.field}>
-                <label className={styles.fieldLabel}>הערות הפניה</label>
-                <textarea
-                  className={styles.textarea}
-                  placeholder="הערות הפניה..."
-                  value={referralNotes}
-                  onChange={e => setReferralNotes(e.target.value)}
-                  rows={2}
-                  disabled={isReadOnly}
-                  readOnly={isReadOnly}
-                />
-              </div>
+            {/* ─ תלונות המטופל ─ */}
+            <SectionHeader icon={<FavoriteIcon sx={{ fontSize: 16 }} />} label="תלונות המטופל" color="#e64980" bg="#fff0f6" />
+            <TextField multiline rows={4} size="small" fullWidth placeholder="תלונות ותסמינים..."
+              value={subjective} onChange={e => setSubjective(e.target.value)}
+              disabled={isProcessing || isReadOnly} slotProps={{ htmlInput: RTL_INPUT }} />
 
-              <div className={styles.formSectionHeader}>
-                <span className={styles.formSectionIcon} style={{ background: '#fff0f6', color: '#e64980' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                  </svg>
-                </span>
-                <span className={styles.formSectionLabel} style={{ color: '#e64980' }}>תלונות המטופל</span>
-              </div>
-              <div className={styles.fieldWrap}>
-                <textarea
-                  className={styles.textarea}
-                  placeholder="תלונות ותסמינים..."
-                  value={subjective}
-                  onChange={e => setSubjective(e.target.value)}
-                  rows={4}
-                  disabled={isProcessing || isReadOnly}
-                  readOnly={isReadOnly}
-                />
-              </div>
+            {/* ─ המלצות הרופא ─ */}
+            <SectionHeader icon={<TaskAltIcon sx={{ fontSize: 16 }} />} label="המלצות הרופא" color="#2f9e44" bg="#ebfbee" />
+            <TextField multiline rows={4} size="small" fullWidth placeholder="טיפול, תרופות, מעקב..."
+              value={plan} onChange={e => setPlan(e.target.value)}
+              disabled={isReadOnly} slotProps={{ htmlInput: RTL_INPUT }} />
 
-              <div className={styles.formSectionHeader}>
-                <span className={styles.formSectionIcon} style={{ background: '#ebfbee', color: '#2f9e44' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 11l3 3L22 4"/>
-                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                  </svg>
-                </span>
-                <span className={styles.formSectionLabel} style={{ color: '#2f9e44' }}>המלצות הרופא</span>
-              </div>
-              <textarea
-                className={styles.textarea}
-                placeholder="טיפול, תרופות, מעקב..."
-                value={plan}
-                onChange={e => setPlan(e.target.value)}
-                rows={4}
-                disabled={isReadOnly}
-                readOnly={isReadOnly}
-              />
+            {/* ─ מדדים ─ */}
+            <SectionHeader icon={<MonitorHeartIcon sx={{ fontSize: 16 }} />} label="מדדים" color="#0c8599" bg="#e3fafc" />
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.5 }}>
+              {([
+                { label: 'לחץ דם',  placeholder: '120/80',  value: bloodPressure, onChange: setBloodPressure },
+                { label: 'דופק',    placeholder: '72 bpm',  value: pulse,         onChange: setPulse },
+                { label: 'חום',     placeholder: '36.6°C',  value: bodyTemp,      onChange: setBodyTemp },
+                { label: 'משקל',    placeholder: '70 kg',   value: weight,        onChange: setWeight },
+                { label: 'גובה',    placeholder: '170 cm',  value: height,        onChange: setHeight },
+                { label: 'סטורציה', placeholder: '98%',     value: oxygenSat,     onChange: setOxygenSat },
+              ] as const).map(({ label, placeholder, value, onChange }) => (
+                <TextField key={label} size="small" fullWidth label={label} placeholder={placeholder}
+                  value={value} onChange={e => onChange(e.target.value)}
+                  disabled={isReadOnly} slotProps={{ inputLabel: { shrink: true }, htmlInput: RTL_INPUT }} />
+              ))}
+            </Box>
 
-              {/* Vitals */}
-              <div className={styles.formSectionHeader}>
-                <span className={styles.formSectionIcon} style={{ background: '#e3fafc', color: '#0c8599' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                  </svg>
-                </span>
-                <span className={styles.formSectionLabel} style={{ color: '#0c8599' }}>מדדים</span>
-              </div>
-              <div className={styles.vitalsGrid}>
-                <div className={styles.vitalField}>
-                  <label className={styles.fieldLabel}>לחץ דם</label>
-                  <input
-                    className={styles.textInput}
-                    type="text"
-                    placeholder="120/80"
-                    value={bloodPressure}
-                    onChange={e => setBloodPressure(e.target.value)}
-                    disabled={isReadOnly}
-                    readOnly={isReadOnly}
-                  />
-                </div>
-                <div className={styles.vitalField}>
-                  <label className={styles.fieldLabel}>דופק</label>
-                  <input
-                    className={styles.textInput}
-                    type="text"
-                    placeholder="72 bpm"
-                    value={pulse}
-                    onChange={e => setPulse(e.target.value)}
-                    disabled={isReadOnly}
-                    readOnly={isReadOnly}
-                  />
-                </div>
-                <div className={styles.vitalField}>
-                  <label className={styles.fieldLabel}>חום</label>
-                  <input
-                    className={styles.textInput}
-                    type="text"
-                    placeholder="36.6°C"
-                    value={bodyTemp}
-                    onChange={e => setBodyTemp(e.target.value)}
-                    disabled={isReadOnly}
-                    readOnly={isReadOnly}
-                  />
-                </div>
-                <div className={styles.vitalField}>
-                  <label className={styles.fieldLabel}>משקל</label>
-                  <input
-                    className={styles.textInput}
-                    type="text"
-                    placeholder="70 kg"
-                    value={weight}
-                    onChange={e => setWeight(e.target.value)}
-                    disabled={isReadOnly}
-                    readOnly={isReadOnly}
-                  />
-                </div>
-                <div className={styles.vitalField}>
-                  <label className={styles.fieldLabel}>גובה</label>
-                  <input
-                    className={styles.textInput}
-                    type="text"
-                    placeholder="170 cm"
-                    value={height}
-                    onChange={e => setHeight(e.target.value)}
-                    disabled={isReadOnly}
-                    readOnly={isReadOnly}
-                  />
-                </div>
-                <div className={styles.vitalField}>
-                  <label className={styles.fieldLabel}>סטורציה</label>
-                  <input
-                    className={styles.textInput}
-                    type="text"
-                    placeholder="98%"
-                    value={oxygenSat}
-                    onChange={e => setOxygenSat(e.target.value)}
-                    disabled={isReadOnly}
-                    readOnly={isReadOnly}
-                  />
-                </div>
-              </div>
 
-              {/* Diagnoses */}
-              <div className={styles.formSectionHeader}>
-                <span className={styles.formSectionIcon} style={{ background: '#f3f0ff', color: '#7048e8' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-                  </svg>
-                </span>
-                <span className={styles.formSectionLabel} style={{ color: '#7048e8' }}>אבחנות ICD-10</span>
-              </div>
+            {/* ─ אבחנות ICD-10 ─ */}
+            <SectionHeader icon={<LocalHospitalIcon sx={{ fontSize: 16 }} />} label="אבחנות ICD-10" color="#7048e8" bg="#f3f0ff" />
+            <Stack sx={{ gap: 0.5 }}>
               {diagnosesList.map((d, i) => (
-                <div key={i} className={styles.listItem}>
-                  <span className={styles.listItemCode}>{d.code}</span>
-                  <span className={styles.listItemDesc}>{d.description}</span>
+                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.25, py: 0.75, background: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: '8px' }}>
+                  <Typography sx={{ fontWeight: 700, color: '#7048e8', fontSize: 13, whiteSpace: 'nowrap' }}>{d.code}</Typography>
+                  <Typography sx={{ flex: 1, color: '#495057', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.description}</Typography>
                   {!isReadOnly && (
-                    <button
-                      className={styles.removeBtn}
-                      onClick={() => setDiagnosesList(prev => prev.filter((_, idx) => idx !== i))}
-                      type="button"
-                    >×</button>
+                    <Button size="small" onClick={() => setDiagnosesList(prev => prev.filter((_, idx) => idx !== i))}
+                      sx={{ minWidth: 0, p: 0.25, color: '#adb5bd', '&:hover': { color: '#e03131' } }}>
+                      <CloseIcon sx={{ fontSize: 16 }} />
+                    </Button>
                   )}
-                </div>
+                </Box>
               ))}
-              {!isReadOnly && (
-                <div className={styles.searchCombo}>
-                  <input
-                    className={styles.textInput}
-                    type="text"
-                    placeholder="חפש קוד או תיאור ICD-10..."
-                    value={diagnosisSearch}
-                    onChange={e => setDiagnosisSearch(e.target.value)}
-                    onFocus={() => {
-                      if (diagnosisOptions.length > 0) {
-                        setDiagnosisDropOpen(true);
-                      } else {
-                        getDiagnoses().then(res => {
-                          setDiagnosisOptions(res.slice(0, 20));
-                          setDiagnosisDropOpen(res.length > 0);
-                        }).catch((err: any) => {
-                          setToast({ severity: 'error', message: 'שגיאה בטעינת אבחנות: ' + (err?.message || 'בעיית רשת') });
-                        });
-                      }
-                    }}
-                    onBlur={() => window.setTimeout(() => setDiagnosisDropOpen(false), 150)}
-                    autoComplete="off"
-                  />
-                  {diagnosisDropOpen && (
-                    <ul className={styles.searchDropdown}>
-                      {diagnosisOptions.map(opt => (
-                        <li
-                          key={opt.id}
-                          className={styles.searchDropdownItem}
-                          onMouseDown={() => {
-                            const already = diagnosesList.some(d => d.code === opt.code);
-                            if (!already) setDiagnosesList(prev => [...prev, { code: opt.code, description: opt.description }]);
-                            setDiagnosisSearch('');
-                            setDiagnosisDropOpen(false);
-                          }}
-                        >
-                          <span className={styles.dropCode}>{opt.code}</span>
-                          <span className={styles.dropDesc}>{opt.description}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
-
-              {/* Medicines */}
-              <div className={styles.formSectionHeader}>
-                <span className={styles.formSectionIcon} style={{ background: '#fff3e6', color: '#e8590c' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/>
-                    <line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/>
-                  </svg>
-                </span>
-                <span className={styles.formSectionLabel} style={{ color: '#e8590c' }}>תרופות</span>
-              </div>
-              {medicinesList.map((m, i) => (
-                <div key={i} className={styles.listItem}>
-                  <span className={styles.listItemCode}>{m.name}</span>
-                  <span className={styles.listItemDesc}>{m.dosage} · {m.frequency} · {m.duration}</span>
-                  {!isReadOnly && (
-                    <button
-                      className={styles.removeBtn}
-                      onClick={() => setMedicinesList(prev => prev.filter((_, idx) => idx !== i))}
-                      type="button"
-                    >×</button>
-                  )}
-                </div>
-              ))}
-              {!isReadOnly && (
-                <div className={styles.medicineAddForm}>
-                  <div className={styles.searchCombo}>
-                    <input
-                      className={styles.textInput}
-                      type="text"
-                      placeholder="חפש שם תרופה..."
-                      value={medicineSearch}
-                      onChange={e => { setMedicineSearch(e.target.value); setSelectedMedicineName(''); }}
-                      onFocus={() => {
-                        if (medicineOptions.length > 0) {
-                          setMedicineDrop0pen(true);
-                        } else {
-                          getMedicines().then(res => {
-                            setMedicineOptions(res.slice(0, 20));
-                            setMedicineDrop0pen(res.length > 0);
-                          }).catch((err: any) => {
-                            setToast({ severity: 'error', message: 'שגיאה בטעינת תרופות: ' + (err?.message || 'בעיית רשת') });
-                          });
-                        }
-                      }}
-                      onBlur={() => window.setTimeout(() => setMedicineDrop0pen(false), 150)}
-                      autoComplete="off"
-                    />
-                    {medicineDrop0pen && (
-                      <ul className={styles.searchDropdown}>
-                        {medicineOptions.map(opt => (
-                          <li
-                            key={opt.id}
-                            className={styles.searchDropdownItem}
-                            onMouseDown={() => {
-                              setSelectedMedicineName(opt.name);
-                              setMedicineSearch(opt.name);
-                              setMedicineDrop0pen(false);
-                            }}
-                          >
-                            <span className={styles.dropDesc}>{opt.name}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                  <div className={styles.medicineMetaRow}>
-                    <input
-                      className={styles.textInput}
-                      type="text"
-                      placeholder="מינון (100mg)"
-                      value={medicineDosage}
-                      onChange={e => setMedicineDosage(e.target.value)}
-                    />
-                    <input
-                      className={styles.textInput}
-                      type="text"
-                      placeholder="תדירות (פעם ביום)"
-                      value={medicineFrequency}
-                      onChange={e => setMedicineFrequency(e.target.value)}
-                    />
-                    <input
-                      className={styles.textInput}
-                      type="text"
-                      placeholder="משך טיפול (7 ימים)"
-                      value={medicineDuration}
-                      onChange={e => setMedicineDuration(e.target.value)}
-                    />
-                  </div>
-                  <button
-                    className={styles.addBtn}
-                    type="button"
-                    onClick={() => {
-                      const name = selectedMedicineName || medicineSearch.trim();
-                      if (!name || !medicineDosage.trim() || !medicineFrequency.trim() || !medicineDuration.trim()) return;
-                      setMedicinesList(prev => [...prev, {
-                        name,
-                        dosage: medicineDosage.trim(),
-                        frequency: medicineFrequency.trim(),
-                        duration: medicineDuration.trim(),
-                      }]);
-                      setMedicineSearch('');
-                      setSelectedMedicineName('');
-                      setMedicineDosage('');
-                      setMedicineFrequency('');
-                      setMedicineDuration('');
-                    }}
-                  >הוסף תרופה</button>
-                </div>
-              )}
-            </div>
-
+            </Stack>
             {!isReadOnly && (
-              <div className={styles.saveBar}>
-                <button
-                  className={styles.saveBtn}
-                  onClick={handleSave}
-                  disabled={saving}
-                  style={saving ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
-                >
-                  {saving ? 'שומר…' : 'שמור ואשר'}
-                </button>
-              </div>
+              <Autocomplete
+                size="small"
+                options={diagnosisOptions}
+                getOptionLabel={opt => `${opt.code} — ${opt.description}`}
+                filterOptions={x => x}
+                inputValue={diagnosisSearch}
+                onInputChange={(_, val, reason) => { if (reason !== 'reset') setDiagnosisSearch(val); }}
+                onChange={(_, value) => {
+                  if (!value) return;
+                  const already = diagnosesList.some(d => d.code === value.code);
+                  if (!already) setDiagnosesList(prev => [...prev, { code: value.code, description: value.description }]);
+                  setTimeout(() => setDiagnosisSearch(''), 0);
+                }}
+                renderInput={params => (
+                  <TextField {...params} placeholder="חפש קוד או תיאור ICD-10..."
+                    slotProps={{ ...params.slotProps, htmlInput: { ...(params.slotProps?.htmlInput as object), ...RTL_INPUT } }} />
+                )}
+                renderOption={(props, opt) => (
+                  <Box component="li" {...props} sx={{ direction: 'rtl' }}>
+                    <Typography variant="body2"><strong style={{ color: '#7048e8' }}>{opt.code}</strong> — {opt.description}</Typography>
+                  </Box>
+                )}
+                noOptionsText="לא נמצאו אבחנות"
+                slotProps={{ popper: { placement: 'bottom-start', modifiers: [{ name: 'flip', enabled: false }] } }}
+              />
             )}
-          </div>
 
-          {/* ── Left: AI Summary ── */}
-          <aside className={styles.aiPanel}>
-            <div className={styles.aiTabBar}>
-              <span className={styles.aiTab}>סיכום בינה מלאכותית</span>
-            </div>
 
-            <div className={styles.aiContent}>
-              {isProcessing ? (
-                <p className={styles.processingText}>מנתח ביקור...</p>
-              ) : (
-                <div className={styles.insightCard}>
-                  <div className={styles.insightHeader}>
-                    <div className={styles.insightIconWrap}>
-                      {isSummarizing ? (
-                        <span className={`${styles.spinner} ${styles.spinnerSm}`} />
-                      ) : (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                        </svg>
-                      )}
-                    </div>
-                    <div className={styles.insightTitle}>
-                      תובנה MedSync
-                      {isSummarizing && (
-                        <span className={styles.insightUpdating}> · מעדכן…</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {liveSummary ? (
-                    <div className={styles.summaryCards}>
-                      {SUMMARY_SECTIONS.map(({ key, label, icon, color, bg }) => (
-                        <div key={key} className={styles.summarySection}>
-                          <div className={styles.summarySectionHeader}>
-                            <span className={styles.summarySectionIcon} style={{ background: bg, color }}>
-                              {icon}
-                            </span>
-                            <span className={styles.summarySectionLabel} style={{ color }}>{label}</span>
-                          </div>
-                          <p className={styles.summarySectionContent}>
-                            {liveSummary[key] || 'Not documented.'}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className={styles.emptyInsight}>רשום או הקלט ביקור כדי לקבל סיכום.</p>
+            {/* ─ תרופות ─ */}
+            <SectionHeader icon={<MedicationIcon sx={{ fontSize: 16 }} />} label="תרופות" color="#e8590c" bg="#fff3e6" />
+            <Stack sx={{ gap: 0.5 }}>
+              {medicinesList.map((m, i) => (
+                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.25, py: 0.75, background: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: '8px' }}>
+                  <Typography sx={{ fontWeight: 700, color: '#e8590c', fontSize: 13, whiteSpace: 'nowrap' }}>{m.name}</Typography>
+                  <Typography sx={{ flex: 1, color: '#495057', fontSize: 13 }}>{m.dosage} · {m.frequency} · {m.duration}</Typography>
+                  {!isReadOnly && (
+                    <Button size="small" onClick={() => setMedicinesList(prev => prev.filter((_, idx) => idx !== i))}
+                      sx={{ minWidth: 0, p: 0.25, color: '#adb5bd', '&:hover': { color: '#e03131' } }}>
+                      <CloseIcon sx={{ fontSize: 16 }} />
+                    </Button>
                   )}
-                </div>
-              )}
-            </div>
-
+                </Box>
+              ))}
+            </Stack>
             {!isReadOnly && (
-              <div className={styles.recordBar}>
-                <button
-                  className={`${styles.recordBtn} ${isRecording ? styles.recordBtnActive : ''}`}
-                  onClick={handleRecord}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                    <line x1="12" y1="19" x2="12" y2="23"/>
-                    <line x1="8" y1="23" x2="16" y2="23"/>
-                  </svg>
-                  {isRecording ? `עצור הקלטה  ${formatTime(timer)}` : 'הקלט שמע לביקור'}
-                </button>
-              </div>
-            )}          </aside>
-        </div>
+              <Stack sx={{ gap: 1 }}>
+                <Autocomplete
+                  size="small"
+                  options={medicineOptions}
+                  getOptionLabel={opt => opt.name}
+                  filterOptions={x => x}
+                  inputValue={medicineSearch}
+                  onInputChange={(_, val, reason) => { if (reason !== 'reset') setMedicineSearch(val); }}
+                  onChange={(_, value) => {
+                    if (!value) return;
+                    setTimeout(() => setMedicineSearch(value.name), 0);
+                  }}
+                  renderInput={params => (
+                    <TextField {...params} placeholder="חפש שם תרופה..."
+                      slotProps={{ ...params.slotProps, htmlInput: { ...(params.slotProps?.htmlInput as object), ...RTL_INPUT } }} />
+                  )}
+                  renderOption={(props, opt) => (
+                    <Box component="li" {...props} sx={{ direction: 'rtl' }}>
+                      <Typography variant="body2">{opt.name}</Typography>
+                    </Box>
+                  )}
+                  noOptionsText="לא נמצאו תרופות"
+                  slotProps={{ popper: { placement: 'bottom-start', modifiers: [{ name: 'flip', enabled: false }] } }}
+                />
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1 }}>
+                  <TextField size="small" placeholder="מינון (100mg)" value={medicineDosage}
+                    onChange={e => setMedicineDosage(e.target.value)} slotProps={{ htmlInput: RTL_INPUT }} />
+                  <TextField size="small" placeholder="תדירות (פעם ביום)" value={medicineFrequency}
+                    onChange={e => setMedicineFrequency(e.target.value)} slotProps={{ htmlInput: RTL_INPUT }} />
+                  <TextField size="small" placeholder="משך טיפול (7 ימים)" value={medicineDuration}
+                    onChange={e => setMedicineDuration(e.target.value)} slotProps={{ htmlInput: RTL_INPUT }} />
+                </Box>
+                <Button variant="outlined" size="small" onClick={handleAddMedicine}
+                  sx={{ alignSelf: 'flex-start', px: 3, borderRadius: '6px', fontWeight: 600 }}>
+                  הוסף תרופה
+                </Button>
+              </Stack>
+            )}
+          </FormCard>
 
-        <Snackbar
-          open={!!toast}
-          autoHideDuration={3500}
-          onClose={() => setToast(null)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert
-            severity={toast?.severity}
-            variant="filled"
-            onClose={() => setToast(null)}
-            sx={{ borderRadius: 2 }}
-          >
-            {toast?.message}
-          </Alert>
-        </Snackbar>
-    </div>
+
+          {!isReadOnly && (
+            <Box sx={{ display: 'flex', justifyContent: 'flex-start', px: 0.5 }}>
+              <Button variant="contained" size="large" onClick={handleSave} disabled={saving}
+                sx={{ borderRadius: '12px', px: 4.5, py: 1.5, fontSize: 15, fontWeight: 700, letterSpacing: '0.02em', background: '#3b5bdb', '&:hover': { background: '#3451c7' } }}>
+                {saving ? 'שומר…' : 'שמור ואשר'}
+              </Button>
+            </Box>
+          )}
+        </FormColumn>
+
+        {/* ── Left: AI summary ── */}
+        <AiPanel>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start', px: 2.5, borderBottom: '1px solid #e9ecef', height: 48, alignItems: 'flex-end' }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#3b5bdb', borderBottom: '2px solid #3b5bdb', pb: 1.5 }}>
+              סיכום בינה מלאכותית
+            </Typography>
+          </Box>
+          <Box sx={{ flex: 1, overflow: 'auto', p: 2.5 }}>
+            {isProcessing ? (
+              <Typography sx={{ fontSize: 14, color: '#868e96', textAlign: 'center', mt: 5 }}>מנתח ביקור...</Typography>
+            ) : (
+              <Paper elevation={0} sx={{ borderRadius: 3, p: 1.75, background: '#f8f9fa', border: '1px solid #e9ecef', display: 'flex', flexDirection: 'column', gap: 1.75 }}>
+                <Stack direction="row" sx={{ alignItems: 'center', gap: 1.25 }}>
+                  <Box sx={{ width: 32, height: 32, borderRadius: '8px', background: '#eef2ff', color: '#3b5bdb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    {isSummarizing ? <CircularProgress size={14} sx={{ color: '#3b5bdb' }} /> : <AutoAwesomeIcon sx={{ fontSize: 14 }} />}
+                  </Box>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#1a1a2e' }}>
+                    תובנה MedSync
+                    {isSummarizing && <Typography component="span" sx={{ fontWeight: 500, color: '#3b5bdb', fontSize: 11 }}> · מעדכן…</Typography>}
+                  </Typography>
+                </Stack>
+                {liveSummary ? (
+                  <Stack sx={{ gap: 1 }}>
+                    {SUMMARY_SECTIONS.map(({ key, label, icon, color, bg }) => (
+                      <SummarySectionCard key={key}>
+                        <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+                          <Box sx={{ width: 22, height: 22, borderRadius: '6px', background: bg, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            {icon}
+                          </Box>
+                          <Typography sx={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color }}>
+                            {label}
+                          </Typography>
+                        </Stack>
+                        <Typography sx={{ fontSize: 13, color: '#495057', lineHeight: 1.55, textAlign: 'right', direction: 'rtl', pl: 3.75 }}>
+                          {liveSummary[key] || 'Not documented.'}
+                        </Typography>
+                      </SummarySectionCard>
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography sx={{ fontSize: 13, color: '#adb5bd', textAlign: 'center', lineHeight: 1.5 }}>
+                    רשום או הקלט ביקור כדי לקבל סיכום.
+                  </Typography>
+                )}
+              </Paper>
+            )}
+          </Box>
+          {!isReadOnly && (
+            <Box sx={{ p: 2 }}>
+              <Button fullWidth
+                variant={isRecording ? 'contained' : 'outlined'}
+                color={isRecording ? 'error' : 'primary'}
+                startIcon={isRecording ? <StopIcon /> : <KeyboardVoiceIcon />}
+                onClick={handleRecord}
+                sx={{
+                  borderRadius: '10px', fontWeight: 600, fontSize: 14, py: 1.375,
+                  ...(isRecording ? {} : { borderColor: '#3b5bdb', color: '#3b5bdb', '&:hover': { background: '#eef2ff', borderColor: '#3b5bdb' } }),
+                }}>
+                {isRecording ? `עצור הקלטה  ${formatTime(timer)}` : 'הקלט שמע לביקור'}
+              </Button>
+            </Box>
+          )}
+        </AiPanel>
+      </Box>
+
+      <Snackbar open={!!toast} autoHideDuration={3500} onClose={() => setToast(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert severity={toast?.severity} variant="filled" onClose={() => setToast(null)} sx={{ borderRadius: 2 }}>
+          {toast?.message}
+        </Alert>
+      </Snackbar>
+    </PageRoot>
   );
-}
+};
+
+export default VisitPage;
+
