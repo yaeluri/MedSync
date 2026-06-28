@@ -244,6 +244,7 @@ export const DocumentsPage: React.FC = () => {
 
   return (
     <Box
+      dir="rtl"
       sx={{
         display: "flex",
         flexDirection: "column",
@@ -257,7 +258,6 @@ export const DocumentsPage: React.FC = () => {
           sx={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1300 }}
         />
       )}
-      {/* Top bar */}
       <Box
         sx={{
           display: "flex",
@@ -288,13 +288,18 @@ export const DocumentsPage: React.FC = () => {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={openUpload}
-          sx={{ borderRadius: 3, px: 2.5, py: 1.2, fontWeight: 700 }}
+          sx={{
+            borderRadius: 3,
+            px: 2.5,
+            py: 1.2,
+            fontWeight: 700,
+            "& .MuiButton-startIcon": { ml: 1, mr: 0 },
+          }}
         >
           העלאת מסמך
         </Button>
       </Box>
 
-      {/* Body */}
       <Box sx={{ flex: 1, overflow: "auto", px: 4, py: 3.5 }}>
         {uploadError && (
           <Alert
@@ -305,7 +310,6 @@ export const DocumentsPage: React.FC = () => {
             {uploadError}
           </Alert>
         )}
-        {/* Toolbar */}
         <Box
           sx={{
             display: "flex",
@@ -321,7 +325,8 @@ export const DocumentsPage: React.FC = () => {
             placeholder="חיפוש לפי רופא או סוג..."
             sx={{
               flex: 1,
-              minWidth: 280,
+              minWidth: 200,
+              maxWidth: 360,
               "& .MuiOutlinedInput-root": {
                 borderRadius: 999,
                 bgcolor: "#fff",
@@ -337,7 +342,7 @@ export const DocumentsPage: React.FC = () => {
               },
             }}
           />
-          <Stack direction="row" spacing={1.25} sx={{ flexShrink: 0 }}>
+          <Stack direction="row-reverse" sx={{ flexShrink: 0, gap: 1.5 }}>
             {FILTERS.map((f) => {
               const active = filter === f.key;
               return (
@@ -351,7 +356,7 @@ export const DocumentsPage: React.FC = () => {
                     borderRadius: 999,
                     fontWeight: 600,
                     fontSize: 13,
-                    px: 1,
+                    px: 1.5,
                     height: 38,
                     bgcolor: active ? undefined : "#fff",
                   }}
@@ -361,7 +366,6 @@ export const DocumentsPage: React.FC = () => {
           </Stack>
         </Box>
 
-        {/* States / grid */}
         {!patientId ? (
           stateMsg("לא נמצא מטופל מחובר.")
         ) : status === "loading" && !documents ? (
@@ -502,4 +506,3 @@ export const DocumentsPage: React.FC = () => {
 };
 
 export default DocumentsPage;
-
