@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -27,7 +27,7 @@ import { getUser, updateUser, User } from '../api/users';
 import { getCaregiver } from '../api/caregivers';
 import { getPatientById, updatePatient } from '../api/patients';
 
-function initialsFromName(name: string): string {
+const initialsFromName = (name: string): string => {
   return name
     .split(/\s+/)
     .filter(Boolean)
@@ -36,14 +36,14 @@ function initialsFromName(name: string): string {
     .join('');
 }
 
-function toDateInput(value?: string | null): string {
+const toDateInput = (value?: string | null): string => {
   if (!value) return '';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return '';
   return d.toISOString().slice(0, 10);
 }
 
-function formatDob(value?: string | null): string {
+const formatDob = (value?: string | null): string => {
   if (!value) return '—';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return '—';
@@ -54,7 +54,7 @@ function formatDob(value?: string | null): string {
   });
 }
 
-export default function ProfilePage() {
+export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const session = loadSession();
   const role = (session?.role as 'patient' | 'doctor' | undefined) ?? 'patient';
@@ -316,9 +316,11 @@ export default function ProfilePage() {
       </Snackbar>
     </Box>
   );
-}
+};
 
-function Row({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+export default ProfilePage;
+
+const Row: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => {
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
       <Box
@@ -335,4 +337,4 @@ function Row({ icon, label, value }: { icon: React.ReactNode; label: string; val
       </Box>
     </Box>
   );
-}
+};

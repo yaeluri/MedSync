@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Box,
@@ -43,7 +43,7 @@ const roleConfig = {
 
 const STEPS = ["פרטי חשבון", "פרטים אישיים"];
 
-export default function RegisterPage() {
+export const RegisterPage: React.FC = () => {
   const { role } = useParams<{ role: string }>();
   const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.patient;
   const isTherapist = role === "therapist";
@@ -249,4 +249,6 @@ export default function RegisterPage() {
       </Typography>
     </Box>
   );
-}
+};
+
+export default RegisterPage;

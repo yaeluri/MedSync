@@ -1,4 +1,5 @@
-import styles from './InfoGrid.module.css';
+import React from 'react';
+import { Box, Typography } from '@mui/material';
 
 export interface InfoField {
   label: string;
@@ -9,15 +10,36 @@ interface Props {
   fields: InfoField[];
 }
 
-export default function InfoGrid({ fields }: Props) {
+export const InfoGrid: React.FC<Props> = ({ fields }) => {
   return (
-    <div className={styles.infoGrid}>
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: 2,
+        mb: 3,
+      }}
+    >
       {fields.map((f) => (
-        <div key={f.label} className={styles.infoCard}>
-          <div className={styles.infoLabel}>{f.label}</div>
-          <div className={styles.infoValue}>{f.value ?? '—'}</div>
-        </div>
+        <Box
+          key={f.label}
+          sx={{
+            bgcolor: '#fff',
+            border: '1px solid #e9ecef',
+            borderRadius: 2,
+            p: 2,
+          }}
+        >
+          <Typography sx={{ fontSize: 12, color: '#868e96', fontWeight: 500, mb: 0.5 }}>
+            {f.label}
+          </Typography>
+          <Typography sx={{ fontSize: 14, color: '#1a1a2e', fontWeight: 600 }}>
+            {f.value ?? '—'}
+          </Typography>
+        </Box>
       ))}
-    </div>
+    </Box>
   );
-}
+};
+
+export default InfoGrid;

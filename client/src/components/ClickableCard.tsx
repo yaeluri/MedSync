@@ -1,5 +1,6 @@
-import type { ReactNode, KeyboardEvent } from 'react';
+import React, { type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ButtonBase } from '@mui/material';
 
 interface ClickableCardProps {
   to?: string;
@@ -12,7 +13,7 @@ interface ClickableCardProps {
  * Accessible clickable card that supports keyboard navigation (Enter / Space).
  * Provide either `to` for navigation or `onClick` for custom behaviour.
  */
-export default function ClickableCard({ to, onClick, className, children }: ClickableCardProps) {
+export const ClickableCard: React.FC<ClickableCardProps> = ({ to, onClick, className, children }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -20,22 +21,16 @@ export default function ClickableCard({ to, onClick, className, children }: Clic
     else if (to) navigate(to);
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleClick();
-    }
-  };
-
   return (
-    <div
+    <ButtonBase
       className={className}
       onClick={handleClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
+      focusRipple
+      sx={{ display: 'block', width: '100%', textAlign: 'inherit' }}
     >
       {children}
-    </div>
+    </ButtonBase>
   );
-}
+};
+
+export default ClickableCard;

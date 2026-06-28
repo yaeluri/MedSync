@@ -28,6 +28,13 @@ export interface Visit {
   bloodPressure?: string;
   pulse?: string;
   bodyTemp?: string;
+  weight?: string;
+  height?: string;
+  oxygenSat?: string;
+  chiefComplaint?: string;
+  visitType?: string;
+  followUpDate?: string;
+  referralNotes?: string;
   createdAt: string;
   updatedAt: string;
   recording?: {
@@ -69,6 +76,13 @@ export interface CreateVisitInput {
   bloodPressure?: string;
   pulse?: string;
   bodyTemp?: string;
+  weight?: string;
+  height?: string;
+  oxygenSat?: string;
+  chiefComplaint?: string;
+  visitType?: string;
+  followUpDate?: string;
+  referralNotes?: string;
 }
 
 export interface VisitRecordingInput {
