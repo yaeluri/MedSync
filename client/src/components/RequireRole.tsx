@@ -1,3 +1,4 @@
+import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { loadSession, RoleName } from '../api/auth';
 
@@ -11,7 +12,7 @@ interface RequireRoleProps {
  * sends authenticated users to their home route when their role is not
  * permitted for the requested path.
  */
-export default function RequireRole({ allow }: RequireRoleProps) {
+export const RequireRole: React.FC<RequireRoleProps> = ({ allow }) => {
   const location = useLocation();
   const session = loadSession();
 
@@ -24,8 +25,10 @@ export default function RequireRole({ allow }: RequireRoleProps) {
   }
 
   return <Outlet />;
-}
+};
 
 export function homeForRole(role: RoleName): string {
   return role === 'doctor' ? '/patients' : '/dashboard';
 }
+
+export default RequireRole;

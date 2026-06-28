@@ -28,3 +28,9 @@ export enum VisitSummaryType {
   RECORDING = 'RECORDING',
   MANUAL_INPUT = 'MANUAL_INPUT',
 }
+
+export enum VisitType {
+  REGULAR = 'REGULAR',
+  EMERGENCY = 'EMERGENCY',
+  FOLLOW_UP = 'FOLLOW_UP',
+}

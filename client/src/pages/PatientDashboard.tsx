@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Box, Grid, LinearProgress, Snackbar, Alert } from '@mui/material';
 import { usePatientDashboard } from '../hooks/usePatientDashboard';
 import { useCameraStream }     from '../hooks/useCameraStream';
@@ -9,7 +9,7 @@ import { DocumentsList }       from '../components/patientDashboard/DocumentsLis
 import { VisitsList }          from '../components/patientDashboard/VisitsList';
 import { UploadModal }         from '../components/patientDashboard/UploadModal';
 
-export default function PatientDashboard() {
+export const PatientDashboard: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
@@ -80,4 +80,6 @@ export default function PatientDashboard() {
       </Snackbar>
     </Box>
   );
-}
+};
+
+export default PatientDashboard;

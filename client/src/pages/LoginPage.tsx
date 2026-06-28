@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Box, Typography, TextField, Button, Chip, Alert } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
@@ -25,7 +25,7 @@ const roleConfig = {
   },
 };
 
-export default function LoginPage() {
+export const LoginPage: React.FC = () => {
   const { role } = useParams<{ role: string }>();
   const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.patient;
   const navigate = useNavigate();
@@ -147,4 +147,6 @@ export default function LoginPage() {
       </Typography>
     </Box>
   );
-}
+};
+
+export default LoginPage;

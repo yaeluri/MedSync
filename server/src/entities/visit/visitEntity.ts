@@ -17,6 +17,7 @@ import { VisitRecording } from '../visitRecording/visitRecordingEntity';
 import { VisitSummary } from '../visitSummary/visitSummaryEntity';
 import { VisitDiagnosis } from '../visitDiagnosis/visitDiagnosisEntity';
 import { VisitMedicine } from '../visitMedicine/visitMedicineEntity';
+import { VisitType } from '../enums';
 import { IVisit } from './visitInterface';
 
 @Entity({ name: 'visits' })
@@ -63,6 +64,27 @@ export class Visit extends BaseEntity implements IVisit {
 
   @Column({ type: 'text', name: 'body_temp', nullable: true })
   bodyTemp?: string;
+
+  @Column({ type: 'text', nullable: true })
+  weight?: string;
+
+  @Column({ type: 'text', nullable: true })
+  height?: string;
+
+  @Column({ type: 'text', name: 'oxygen_sat', nullable: true })
+  oxygenSat?: string;
+
+  @Column({ type: 'text', name: 'chief_complaint', nullable: true })
+  chiefComplaint?: string;
+
+  @Column({ type: 'varchar', name: 'visit_type', nullable: true })
+  visitType?: VisitType;
+
+  @Column({ type: 'date', name: 'follow_up_date', nullable: true })
+  followUpDate?: string;
+
+  @Column({ type: 'text', name: 'referral_notes', nullable: true })
+  referralNotes?: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

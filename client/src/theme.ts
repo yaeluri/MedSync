@@ -25,6 +25,15 @@ const theme = createTheme({
             background: '#f8f9fa',
             '&:hover fieldset': { borderColor: '#3b5bdb' },
           },
+          '& .MuiInputBase-input': {
+            fontSize: '13px',
+            '&::placeholder': { opacity: 0.5 },
+          },
+          '& .MuiInputBase-inputSizeSmall': {
+            paddingTop: '6.5px',
+            paddingBottom: '6.5px',
+          },
+          '& .MuiInputLabel-root': { fontSize: '13px' },
         },
       },
     },

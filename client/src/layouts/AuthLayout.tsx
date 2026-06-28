@@ -1,3 +1,4 @@
+import React from 'react';
 import { Outlet, useParams } from "react-router-dom";
 import { Box, Typography } from "@mui/material";
 import SecurityIcon from "@mui/icons-material/Security";
@@ -40,7 +41,7 @@ const themes = {
   },
 };
 
-export default function AuthLayout() {
+export const AuthLayout: React.FC = () => {
   const { role } = useParams<{ role: string }>();
   const theme = themes[role as keyof typeof themes] || themes.default;
 
@@ -150,4 +151,6 @@ export default function AuthLayout() {
       </Box>
     </Box>
   );
-}
+};
+
+export default AuthLayout;

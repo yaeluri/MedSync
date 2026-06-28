@@ -103,7 +103,7 @@ function formatDate(value: string): string {
   });
 }
 
-export default function DocumentsPage() {
+export const DocumentsPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const session = loadSession();
@@ -499,4 +499,7 @@ export default function DocumentsPage() {
       )}
     </Box>
   );
-}
+};
+
+export default DocumentsPage;
+

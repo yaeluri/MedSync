@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
+  DialogTitle,
   DialogContent,
   Box,
   Typography,
   IconButton,
-  Button,
   CircularProgress,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -19,7 +19,7 @@ interface Props {
   onClose: () => void;
 }
 
-export default function DocumentSummaryModal({ docId, docName, onClose }: Props) {
+export const DocumentSummaryModal: React.FC<Props> = ({ docId, docName, onClose }) => {
   const [summaryText, setSummaryText] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -132,4 +132,6 @@ export default function DocumentSummaryModal({ docId, docName, onClose }: Props)
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default DocumentSummaryModal;
