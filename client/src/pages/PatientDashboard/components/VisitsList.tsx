@@ -82,7 +82,9 @@ function VisitRow({
         )}
       </Box>
 
-      <ChevronLeft style={{ color: '#adb5bd', flexShrink: 0 }} />
+      <Box sx={{ color: '#adb5bd', flexShrink: 0, display: 'flex' }}>
+        <ChevronLeft />
+      </Box>
     </Stack>
   );
 }
