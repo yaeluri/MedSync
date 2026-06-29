@@ -442,7 +442,7 @@ export const DocumentsPage: React.FC = () => {
                     size="small"
                     icon={
                       doc.summaryStatus === "PROCESSING" ? (
-                        <CircularProgress size={11} sx={{ color: st.color }} />
+                        <CircularProgress size={12} sx={{ color: st.color }} />
                       ) : undefined
                     }
                     label={st.label}
@@ -455,8 +455,8 @@ export const DocumentsPage: React.FC = () => {
                       borderRadius: 2,
                       "& .MuiChip-icon": {
                         color: st.color,
-                        ml: "6px",
-                        mr: "-4px",
+                        mr: "6px",
+                        ml: "-4px",
                       },
                     }}
                   />
