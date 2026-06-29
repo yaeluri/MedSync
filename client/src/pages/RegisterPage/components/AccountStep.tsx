@@ -1,0 +1,29 @@
+import React from 'react';
+import { Button } from '@mui/material';
+import type { RegisterFormState } from '../hooks/useRegisterForm';
+import { FormFields } from './FormFields';
+import { ACCOUNT_FIELDS } from '../config/accountFields';
+
+interface IAccountStepProps {
+  form: RegisterFormState;
+  isTherapist: boolean;
+  color: string;
+}
+
+export const AccountStep: React.FC<IAccountStepProps> = ({ form, isTherapist, color }) => (
+  <>
+    <FormFields fields={ACCOUNT_FIELDS} form={form} isTherapist={isTherapist} />
+    <Button
+      type="button"
+      variant="contained"
+      size="large"
+      fullWidth
+      onClick={form.handleNext}
+      sx={{ mt: 0.5, py: 1.4, fontSize: 16, bgcolor: color, '&:hover': { bgcolor: color, filter: 'brightness(0.9)' } }}
+    >
+      המשך
+    </Button>
+  </>
+);
+
+export default AccountStep;
