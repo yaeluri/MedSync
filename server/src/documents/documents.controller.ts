@@ -17,6 +17,7 @@ import {
 import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentsService } from './documents.service';
+import { DocumentType } from '../entities/enums';
 
 const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024; // 10 MB
 
@@ -41,9 +42,18 @@ export class DocumentsController {
     @UploadedFile() file: Express.Multer.File,
     @Body('patientId') patientId?: string,
     @Body('uploadedByUserId') uploadedByUserId?: string,
+    @Body('documentType') documentType?: string,
   ) {
     if (!file || !file.buffer) {
       throw new BadRequestException('A document file is required');
+    }
+
+    let parsedDocumentType: DocumentType | undefined;
+    if (documentType) {
+      if (!Object.values(DocumentType).includes(documentType as DocumentType)) {
+        throw new BadRequestException(`Invalid document type: ${documentType}`);
+      }
+      parsedDocumentType = documentType as DocumentType;
     }
 
     if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
@@ -56,17 +66,37 @@ export class DocumentsController {
       throw new BadRequestException('File size exceeds 10 MB limit');
     }
 
+    if (!patientId || !uploadedByUserId) {
+      throw new BadRequestException(
+        'patientId and uploadedByUserId are required',
+      );
+    }
+
     try {
       // Multer decodes multipart filenames as Latin-1; re-encode as UTF-8 for Hebrew/non-ASCII names
-      const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
-      const result = await this.documentsService.processDocument(
+      const originalName = Buffer.from(file.originalname, 'latin1').toString(
+        'utf8',
+      );
+
+      // Save the file immediately and respond; analysis runs in the background.
+      const pending = await this.documentsService.createPendingDocument(
         file.buffer,
         file.mimetype,
         originalName,
         patientId,
         uploadedByUserId,
+        parsedDocumentType,
       );
-      return result;
+
+      // Fire-and-forget background analysis (OCR + summary). Errors are handled internally.
+      void this.documentsService.analyzeDocument(
+        pending.id,
+        file.buffer,
+        file.mimetype,
+        originalName,
+      );
+
+      return pending;
     } catch (err) {
       if (err instanceof HttpException) throw err;
       const detail = err instanceof Error ? err.message : String(err);
