@@ -1,4 +1,4 @@
-import { RefObject } from "react";
+import React, { RefObject } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
@@ -8,11 +8,11 @@ interface UploadBannerProps {
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export function UploadBanner({
+export const UploadBanner: React.FC<UploadBannerProps> = ({
   onUploadClick,
   fileInputRef,
   onFileChange,
-}: UploadBannerProps) {
+}) => {
   return (
     <Box
       sx={{
@@ -117,4 +117,4 @@ export function UploadBanner({
       </Box>
     </Box>
   );
-}
+};

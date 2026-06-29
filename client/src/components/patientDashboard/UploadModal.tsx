@@ -1,4 +1,4 @@
-import { RefObject } from "react";
+import React, { RefObject } from "react";
 import {
   Alert,
   Avatar,
@@ -72,7 +72,7 @@ interface UploadModalProps {
   onConfirmUpload: () => void;
 }
 
-export function UploadModal({
+export const UploadModal: React.FC<UploadModalProps> = ({
   open,
   onClose,
   cameraMode,
@@ -88,7 +88,7 @@ export function UploadModal({
   fileError,
   selectedFileName,
   onConfirmUpload,
-}: UploadModalProps) {
+}) => {
   return (
     <Dialog
       open={open}
@@ -332,4 +332,4 @@ export function UploadModal({
       </DialogContent>
     </Dialog>
   );
-}
+};
