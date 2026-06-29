@@ -41,6 +41,7 @@ export interface RegisterDoctorInput {
 export interface LoginInput {
   email: string;
   password: string;
+  expectedRole?: string;
 }
 
 export interface AuthResult {
@@ -165,11 +166,32 @@ export class AuthService {
     if (!user || !verifyPassword(input.password, user.password)) {
       throw new UnauthorizedException('Invalid email or password');
     }
+
+    const roleName = user.role?.name;
+    if (!roleName || !['doctor', 'patient'].includes(roleName)) {
+      throw new UnauthorizedException('User does not have an assigned role. Contact an administrator.');
+    }
+
+    // Validate expected role if provided.
+    // A doctor inherits patient access, so a doctor may log in via the patient
+    // interface too. A patient may only log in as a patient.
+    if (input.expectedRole) {
+      const expected = input.expectedRole === 'therapist' ? 'doctor' : input.expectedRole;
+      const effectiveRoles = roleName === 'doctor' ? ['doctor', 'patient'] : ['patient'];
+      if (!effectiveRoles.includes(expected)) {
+        throw new UnauthorizedException(
+          expected === 'doctor'
+            ? 'אין לך הרשאות מטפל'
+            : 'אין לך הרשאות מטופל',
+        );
+      }
+    }
+
     return {
       userId: user.id,
       email: user.email,
       fullName: user.fullName,
-      role: user.role?.name ?? 'patient',
+      role: roleName,
       patientId: user.patient?.id,
       caregiverId: user.caregiver?.id,
     };

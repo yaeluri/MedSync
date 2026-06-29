@@ -67,6 +67,13 @@ export class UsersService {
     return this.strip(user);
   }
 
+ async findUserByIdWithRole(id: string): Promise<User | null> {
+    return this.repo.findOne({
+      where: { id },
+      relations: ['role', 'patient', 'caregiver'],
+    });
+  }
+
   findRawByEmail(email: string): Promise<User | null> {
     return this.repo.findOne({
       where: { email: email.toLowerCase() },
