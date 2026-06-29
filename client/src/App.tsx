@@ -30,8 +30,8 @@ function App() {
           </Route>
 
           <Route element={<AppLayout />}>
-            {/* Patient-only */}
-            <Route element={<RequireRole allow={["patient"]} />}>
+            {/* Patient + Doctor (doctor inherits patient access) */}
+            <Route element={<RequireRole allow={["patient", "doctor"]} />}>
               <Route path="/dashboard" element={<PatientDashboard />} />
               <Route path="/documents" element={<DocumentsPage />} />
               <Route path="/visit"     element={<VisitPage />} />

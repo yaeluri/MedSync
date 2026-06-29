@@ -1,5 +1,15 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+function getAuthHeaders(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem('medsync.session');
+    if (!raw) return {};
+    const session = JSON.parse(raw);
+    if (session?.userId) return { 'x-user-id': session.userId };
+  } catch { /* noop */ }
+  return {};
+}
+
 export interface ApiError extends Error {
   status: number;
   body?: unknown;
@@ -23,8 +33,14 @@ export async function apiRequest<T = any>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, options);
+  const authHeaders = getAuthHeaders();
+  const mergedHeaders = { ...authHeaders, ...(options.headers || {}) };
+  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers: mergedHeaders });
   if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem('medsync.session');
+      localStorage.removeItem('role');
+    }
     const detail = await readError(res);
     const err = new Error(detail) as ApiError;
     err.status = res.status;
@@ -43,7 +59,7 @@ export function apiJson<T = any>(
 ): Promise<T> {
   return apiRequest<T>(path, {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 }

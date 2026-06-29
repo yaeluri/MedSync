@@ -6,7 +6,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import PersonIcon from '@mui/icons-material/Person';
 import PeopleIcon from '@mui/icons-material/People';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { clearSession, loadSession } from '../api/auth';
+import { clearSession, getEffectiveRole } from '../api/auth';
 
 const NAV_ITEM_SX = {
   width: 40, height: 40, borderRadius: '10px', color: '#adb5bd',
@@ -26,7 +26,7 @@ const NavItem: React.FC<{ to: string; title: string; icon: React.ReactNode }> = 
 
 export const AppLayout: React.FC = () => {
   const navigate = useNavigate();
-  const isDoctor = loadSession()?.role === 'doctor';
+  const isDoctor = getEffectiveRole() === 'doctor';
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
@@ -50,7 +50,10 @@ export const AppLayout: React.FC = () => {
 
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5, flex: 1 }}>
           {isDoctor ? (
-            <NavItem to="/patients" title="מטופלים" icon={<PeopleIcon fontSize="small" />} />
+            <>
+              <NavItem to="/patients" title="מטופלים" icon={<PeopleIcon fontSize="small" />} />
+              <NavItem to="/profile"  title="פרופיל"  icon={<PersonIcon fontSize="small" />} />
+            </>
           ) : (
             <>
               <NavItem to="/dashboard" title="בית"      icon={<HomeIcon        fontSize="small" />} />
