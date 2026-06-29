@@ -17,7 +17,7 @@ import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CloseIcon from "@mui/icons-material/Close";
 import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
-import { DocumentTypeEnum } from "../../api/medical-documents";
+import { DocumentTypeEnum } from "../../../api/medical-documents";
 
 const ALLOWED_UPLOAD_EXTENSIONS = [
   "pdf",
