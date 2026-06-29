@@ -1,6 +1,6 @@
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from './client';
 
-export type SummaryStatus = 'SUCCESS' | 'FAILED';
+export type SummaryStatus = 'PROCESSING' | 'SUCCESS' | 'FAILED';
 export type DocumentTypeEnum =
   | 'LAB_RESULT'
   | 'REFERRAL'

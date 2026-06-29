@@ -1,4 +1,5 @@
 export enum SummaryStatus {
+  PROCESSING = 'PROCESSING',
   SUCCESS = 'SUCCESS',
   FAILED = 'FAILED',
 }
