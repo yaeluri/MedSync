@@ -4,15 +4,15 @@ import AuthLayout from "./layouts/AuthLayout";
 import AppLayout from "./layouts/AppLayout";
 import RequireRole from "./components/RequireRole";
 
-const VisitPage            = lazy(() => import("./pages/VisitPage"));
-const DocumentsPage        = lazy(() => import("./pages/DocumentsPage"));
-const PatientDashboard     = lazy(() => import("./pages/PatientDashboard"));
-const LoginPage            = lazy(() => import("./pages/LoginPage"));
-const RegisterPage         = lazy(() => import("./pages/RegisterPage"));
-const RoleSelectPage       = lazy(() => import("./pages/RoleSelectPage"));
-const PatientsListPage     = lazy(() => import("./pages/PatientsListPage"));
-const PatientDashboardPage = lazy(() => import("./pages/PatientDashboardPage"));
-const ProfilePage          = lazy(() => import("./pages/ProfilePage"));
+const VisitPage            = lazy(() => import("./pages/VisitPage/VisitPage"));
+const DocumentsPage        = lazy(() => import("./pages/DocumentsPage/DocumentsPage"));
+const PatientDashboard     = lazy(() => import("./pages/PatientDashboard/PatientDashboard"));
+const LoginPage            = lazy(() => import("./pages/LoginPage/LoginPage"));
+const RegisterPage         = lazy(() => import("./pages/RegisterPage/RegisterPage"));
+const RoleSelectPage       = lazy(() => import("./pages/RoleSelectPage/RoleSelectPage"));
+const PatientsListPage     = lazy(() => import("./pages/PatientsListPage/PatientsListPage"));
+const PatientDashboardPage = lazy(() => import("./pages/PatientDashboardPage/PatientDashboardPage"));
+const ProfilePage          = lazy(() => import("./pages/ProfilePage/ProfilePage"));
 
 function App() {
   return (

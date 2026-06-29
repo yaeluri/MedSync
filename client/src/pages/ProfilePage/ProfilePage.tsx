@@ -22,10 +22,10 @@ import HomeIcon from '@mui/icons-material/Home';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import EditIcon from '@mui/icons-material/Edit';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { clearSession, loadSession, saveSession } from '../api/auth';
-import { getUser, updateUser, User } from '../api/users';
-import { getCaregiver } from '../api/caregivers';
-import { getPatientById, updatePatient } from '../api/patients';
+import { clearSession, loadSession, saveSession } from '../../api/auth';
+import { getUser, updateUser, User } from '../../api/users';
+import { getCaregiver } from '../../api/caregivers';
+import { getPatientById, updatePatient } from '../../api/patients';
 
 const initialsFromName = (name: string): string => {
   return name

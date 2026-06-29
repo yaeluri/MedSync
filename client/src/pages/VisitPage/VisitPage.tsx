@@ -17,16 +17,16 @@ import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import PersonIcon from '@mui/icons-material/Person';
 import PhoneIcon from '@mui/icons-material/Phone';
 import StopIcon from '@mui/icons-material/Stop';
-import { useAudioRecorder } from '../hooks/useAudioRecorder';
+import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 import {
   summarizeText, createVisit, upsertVisitSummary,
   addVisitDiagnosis, addVisitMedicine, updateVisit, getVisit,
   VisitSummaryObject,
-} from '../api/visits';
-import { loadSession } from '../api/auth';
-import { getDiagnoses, Diagnosis } from '../api/diagnoses';
-import { getMedicines, Medicine } from '../api/medicines';
-import PageHeader from '../components/PageHeader';
+} from '../../api/visits';
+import { loadSession } from '../../api/auth';
+import { getDiagnoses, Diagnosis } from '../../api/diagnoses';
+import { getMedicines, Medicine } from '../../api/medicines';
+import PageHeader from '../../components/PageHeader';
 
 // ── Types ───────────────────────────────────────────────────────────────────────────
 type ToastState = { severity: 'success' | 'error' | 'warning'; message: string } | null;

@@ -15,12 +15,12 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import DescriptionIcon from '@mui/icons-material/Description';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import DownloadIcon from '@mui/icons-material/Download';
-import { useDocumentUpload } from '../hooks/useDocumentUpload';
-import { getPatientById, Patient } from '../api/patients';
-import { downloadDocument } from '../api/documents';
-import { useAsyncData } from '../hooks/useAsyncData';
-import PageHeader from '../components/PageHeader';
-import DocumentSummaryModal from '../components/DocumentSummaryModal';
+import { useDocumentUpload } from '../../hooks/useDocumentUpload';
+import { getPatientById, Patient } from '../../api/patients';
+import { downloadDocument } from '../../api/documents';
+import { useAsyncData } from '../../hooks/useAsyncData';
+import PageHeader from '../../components/PageHeader';
+import DocumentSummaryModal from '../../components/DocumentSummaryModal';
 
 export const DocumentsPage: React.FC = () => {
   const navigate = useNavigate();

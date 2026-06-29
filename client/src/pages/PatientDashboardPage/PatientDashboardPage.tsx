@@ -9,13 +9,13 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import DownloadIcon from '@mui/icons-material/Download';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import { getPatientById, Patient } from '../api/patients';
-import { downloadDocument } from '../api/documents';
-import { useAsyncData } from '../hooks/useAsyncData';
-import PageHeader from '../components/PageHeader';
-import ClickableCard from '../components/ClickableCard';
-import InfoGrid from '../components/InfoGrid';
-import DocumentSummaryModal from '../components/DocumentSummaryModal';
+import { getPatientById, Patient } from '../../api/patients';
+import { downloadDocument } from '../../api/documents';
+import { useAsyncData } from '../../hooks/useAsyncData';
+import PageHeader from '../../components/PageHeader';
+import ClickableCard from '../../components/ClickableCard';
+import InfoGrid from '../../components/InfoGrid';
+import DocumentSummaryModal from '../../components/DocumentSummaryModal';
 
 export const PatientDashboardPage: React.FC = () => {
   const navigate = useNavigate();

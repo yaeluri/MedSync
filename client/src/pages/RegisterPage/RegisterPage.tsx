@@ -22,7 +22,7 @@ import LockIcon from "@mui/icons-material/Lock";
 import PhoneIcon from "@mui/icons-material/Phone";
 import InputAdornment from "@mui/material/InputAdornment";
 import MenuItem from "@mui/material/MenuItem";
-import { registerDoctor, registerPatient, saveSession } from "../api/auth";
+import { registerDoctor, registerPatient, saveSession } from "../../api/auth";
 
 const roleConfig = {
   patient: {
