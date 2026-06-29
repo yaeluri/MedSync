@@ -1,13 +1,14 @@
 import React, { useRef, useState } from 'react';
-import { Box, Grid, LinearProgress, Snackbar, Alert } from '@mui/material';
-import { usePatientDashboard } from '../hooks/usePatientDashboard';
-import { useCameraStream }     from '../hooks/useCameraStream';
-import { DashboardHeader }     from '../components/patientDashboard/DashboardHeader';
-import { UploadBanner }        from '../components/patientDashboard/UploadBanner';
-import { AISummaryCard }       from '../components/patientDashboard/AISummaryCard';
-import { DocumentsList }       from '../components/patientDashboard/DocumentsList';
-import { VisitsList }          from '../components/patientDashboard/VisitsList';
-import { UploadModal }         from '../components/patientDashboard/UploadModal';
+import { Box, Grid, LinearProgress } from '@mui/material';
+import Toast from '../../components/Toast/Toast';
+import { usePatientDashboard } from './hooks/usePatientDashboard';
+import { useCameraStream }     from '../../hooks/useCameraStream';
+import { DashboardHeader }     from './components/DashboardHeader';
+import { UploadBanner }        from './components/UploadBanner';
+import { AISummaryCard }       from './components/AISummaryCard';
+import { DocumentsList }       from './components/DocumentsList';
+import { VisitsList }          from './components/VisitsList';
+import { UploadModal }         from './components/UploadModal';
 
 export const PatientDashboard: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -70,14 +71,7 @@ export const PatientDashboard: React.FC = () => {
         onChooseFile={() => fileInputRef.current?.click()}
       />
 
-      <Snackbar
-        open={!!toast} autoHideDuration={4000} onClose={() => setToast(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert severity={toast?.severity} variant="filled" onClose={() => setToast(null)} sx={{ borderRadius: 2 }}>
-          {toast?.message}
-        </Alert>
-      </Snackbar>
+      <Toast toast={toast} onClose={() => setToast(null)} autoHideDuration={4000} />
     </Box>
   );
 };
