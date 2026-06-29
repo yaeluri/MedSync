@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AuthLayout from "./layouts/AuthLayout";
 import AppLayout from "./layouts/AppLayout";
-import RequireRole from "./components/RequireRole";
+import RequireRole from "./components/RequireRole/RequireRole";
 
 const VisitPage            = lazy(() => import("./pages/VisitPage/VisitPage"));
 const DocumentsPage        = lazy(() => import("./pages/DocumentsPage/DocumentsPage"));
