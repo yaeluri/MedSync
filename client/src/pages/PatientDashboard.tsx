@@ -49,14 +49,14 @@ export const PatientDashboard: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     closeModal();
-    uploadFile(file);
+    uploadFile(file, documentType ?? undefined);
     e.target.value = "";
   };
 
   const handleCapture = () => {
     capture((file) => {
       setShowUploadModal(false);
-      uploadFile(file);
+      uploadFile(file, documentType ?? undefined);
     });
   };
 
@@ -123,7 +123,14 @@ export const PatientDashboard: React.FC = () => {
         onChooseFile={() => fileInputRef.current?.click()}
         documentType={documentType}
         onDocumentTypeChange={setDocumentType}
-        onConfirmUpload={() => {}}
+        onConfirmUpload={() => {
+          if (fileInputRef.current?.files?.[0]) {
+            const file = fileInputRef.current.files[0];
+            closeModal();
+            uploadFile(file, documentType ?? undefined);
+            fileInputRef.current.value = "";
+          }
+        }}
       />
 
       <Snackbar
