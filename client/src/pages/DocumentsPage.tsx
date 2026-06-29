@@ -40,15 +40,14 @@ type FilterKey = "all" | DocumentTypeEnum;
 
 const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "all", label: "הכל" },
-  { key: "LAB_RESULT", label: "בדיקות מעבדה" },
-  { key: "REFERRAL", label: "הפניות" },
-  { key: "DISCHARGE_SUMMARY", label: "סיכומים" },
+  { key: "LAB_RESULT", label: "בדיקות דם" },
+  { key: "DISCHARGE_SUMMARY", label: "סיכומי ביקור" },
 ];
 
 const DOC_TYPE_LABELS: Record<DocumentTypeEnum, string> = {
-  LAB_RESULT: "בדיקת מעבדה",
+  LAB_RESULT: "בדיקת דם",
   REFERRAL: "הפניה",
-  DISCHARGE_SUMMARY: "סיכום שחרור",
+  DISCHARGE_SUMMARY: "סיכום ביקור",
   IMAGING: "דימות",
   PRESCRIPTION: "מרשם",
   OTHER: "אחר",
@@ -108,7 +107,6 @@ export const DocumentsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const session = loadSession();
   const isDoctorView = !!id;
-  // Tenant scope: doctors open a patient via the route param; patients see only their own records.
   const patientId = id ?? session?.patientId;
 
   const [query, setQuery] = useState("");

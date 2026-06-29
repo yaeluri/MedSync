@@ -41,7 +41,6 @@ export const SUPPORTED_FORMATS_LABEL =
   "PDF, PNG, JPG, WebP \u00B7 \u05E2\u05D3 10MB";
 export const UPLOAD_ACCEPT_ATTR = ".pdf,.png,.jpg,.jpeg,.webp,.heic,.heif";
 
-/** Client-side guard so unsupported files are never sent to the server. */
 export function isSupportedUploadFile(file: File): boolean {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
   return (
@@ -51,9 +50,8 @@ export function isSupportedUploadFile(file: File): boolean {
 }
 
 const DOC_TYPE_OPTIONS: { value: DocumentTypeEnum; label: string }[] = [
-  { value: "LAB_RESULT", label: "בדיקות מעבדה" },
-  { value: "REFERRAL", label: "הפניות" },
-  { value: "DISCHARGE_SUMMARY", label: "סיכומים" },
+  { value: "LAB_RESULT", label: "בדיקות דם" },
+  { value: "DISCHARGE_SUMMARY", label: "סיכומי ביקור" },
 ];
 
 interface UploadModalProps {
