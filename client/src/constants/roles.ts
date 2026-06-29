@@ -1,6 +1,8 @@
-export const ROLE_DOCTOR = 'doctor';
-export const ROLE_PATIENT = 'patient';
+export enum Role {
+  Doctor = "doctor",
+  Patient = "patient",
+}
 
-export const ALL_ROLES = [ROLE_DOCTOR, ROLE_PATIENT] as const;
+export const ALL_ROLES = Object.values(Role);
 
-export type TRoleName = (typeof ALL_ROLES)[number];
+export type TRoleName = `${Role}`;
