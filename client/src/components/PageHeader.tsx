@@ -25,7 +25,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, onBack 
         flexShrink: 0,
       }}
     >
-      <Stack direction="row" alignItems="center" spacing={1}>
+      <Stack sx={{ flexDirection: 'row', alignItems: 'center' }} spacing={1}>
         {onBack && (
           <IconButton onClick={onBack} aria-label="Back" size="small">
             <ChevronRightIcon />
@@ -42,7 +42,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, onBack 
           )}
         </Box>
       </Stack>
-      <Stack direction="row" alignItems="center" spacing={1.5}>
+      <Stack sx={{ flexDirection: 'row', alignItems: 'center' }} spacing={1.5}>
         <Box sx={{ textAlign: 'right' }}>
           <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#1a1a2e' }}>
             {doctor.fullName}
