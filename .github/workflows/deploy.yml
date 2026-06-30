@@ -1,0 +1,58 @@
+name: Deploy MedSync
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── Build client ────────────────────────────────────────────────
+      - name: Install & build client
+        working-directory: client
+        run: |
+          npm ci
+          VITE_API_URL=http://10.10.248.140 npm run build
+
+      # ── Build server ────────────────────────────────────────────────
+      - name: Install & build server
+        working-directory: server
+        run: |
+          npm ci
+          npm run build
+
+      # ── Deploy files to /opt/medsync ────────────────────────────────
+      - name: Deploy client static files
+        run: |
+          mkdir -p /opt/medsync/client
+          rm -rf /opt/medsync/client/dist
+          cp -r client/dist /opt/medsync/client/dist
+
+      - name: Deploy server files
+        run: |
+          mkdir -p /opt/medsync/server
+          rm -rf /opt/medsync/server/dist
+          cp -r server/dist /opt/medsync/server/dist
+          cp server/package.json server/package-lock.json /opt/medsync/server/
+          cd /opt/medsync/server && npm ci --omit=dev
+
+      # ── nginx config (update + reload) ──────────────────────────────
+      - name: Update nginx config
+        run: |
+          sudo cp nginx/medsync.conf /etc/nginx/sites-available/medsync
+          sudo ln -sf /etc/nginx/sites-available/medsync /etc/nginx/sites-enabled/medsync
+          sudo nginx -t && sudo systemctl reload nginx
+
+      # ── Restart app ─────────────────────────────────────────────────
+      - name: Restart API with PM2
+        run: |
+          pm2 describe medsync-api > /dev/null 2>&1 \
+            && pm2 restart medsync-api \
+            || pm2 start /opt/medsync/pm2.config.js
+          pm2 save
