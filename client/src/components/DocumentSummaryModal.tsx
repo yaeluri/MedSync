@@ -12,6 +12,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { getDocumentSummary, downloadDocument } from "../api/documents";
+import MedicalSummary from "./MedicalSummary";
 
 interface Props {
   docId: string;
@@ -146,17 +147,9 @@ export const DocumentSummaryModal: React.FC<Props> = ({
           </Typography>
         )}
         {!loading && !error && (
-          <Typography
-            sx={{
-              fontSize: 14,
-              lineHeight: 1.75,
-              color: "#212529",
-              textAlign: "right",
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {summaryText}
-          </Typography>
+          <Box sx={{ direction: "rtl" }}>
+            <MedicalSummary text={summaryText ?? ""} />
+          </Box>
         )}
       </DialogContent>
     </Dialog>

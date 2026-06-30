@@ -70,6 +70,14 @@ export class AuthService {
     const existing = await this.users.findOne({ where: { email } });
     if (existing) throw new BadRequestException('Email already in use');
 
+    const idNumber = input.idNumber?.trim() || undefined;
+    if (idNumber) {
+      const existingPatient = await this.patients.findOne({
+        where: { idNumber },
+      });
+      if (existingPatient) throw new BadRequestException('ID number already in use');
+    }
+
     const role = await this.roles.getOrCreate(
       input.role === 'patient' ? input.role : 'patient',
       'Patient role',
@@ -89,7 +97,7 @@ export class AuthService {
 
       const patient = manager.getRepository(Patient).create({
         userId: savedUser.id,
-        idNumber: input.idNumber || undefined,
+        idNumber,
         hmo: input.hmo,
         bloodType: input.bloodType,
         address: input.address || '',

@@ -17,10 +17,14 @@ import {
   PatientSummary,
   UpdatePatientInput,
 } from './patient.types';
+import { PatientMedicalSummaryService } from '../patient-medical-summary/patient-medical-summary.service';
 
 @Controller('api/patients')
 export class PatientsController {
-  constructor(private readonly patientsService: PatientsService) {}
+  constructor(
+    private readonly patientsService: PatientsService,
+    private readonly medicalSummaryService: PatientMedicalSummaryService,
+  ) {}
 
   @Get()
   findAll(@Query('search') search?: string): Promise<PatientSummary[]> {
@@ -49,5 +53,22 @@ export class PatientsController {
   @HttpCode(204)
   remove(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
     return this.patientsService.remove(id);
+  }
+
+  @Post(':id/medical-summary/refresh')
+  async refreshMedicalSummary(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<Patient> {
+    await this.medicalSummaryService.generateAndSave(id);
+    return this.patientsService.findOne(id);
+  }
+
+  @Post('medical-summary/regenerate-all')
+  regenerateAllMedicalSummaries(): Promise<{
+    total: number;
+    succeeded: number;
+    failed: number;
+  }> {
+    return this.medicalSummaryService.forceRegenerateAll();
   }
 }
