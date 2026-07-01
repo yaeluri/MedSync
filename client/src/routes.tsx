@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AuthLayout from "./layouts/AuthLayout";
 import AppLayout from "./layouts/AppLayout";
 import RequireRole from "./components/RequireRole/RequireRole";
-import { AuthMonitor } from "./components/AuthMonitor/AuthMonitor";
 import { Role } from "./constants/roles";
 
 const VisitPage            = lazy(() => import("./pages/VisitPage/VisitPage"));
@@ -80,18 +79,16 @@ export function Router() {
 
   return (
     <BrowserRouter>
-      <AuthMonitor>
-        <Suspense fallback={<div style={{ padding: "2rem" }}>Loading...</div>}>
-          <Routes>
-            {publicRoutes.map(renderRoute)}
-            {authRoutes.map(renderRoute)}
+      <Suspense fallback={<div style={{ padding: "2rem" }}>Loading...</div>}>
+        <Routes>
+          {publicRoutes.map(renderRoute)}
+          {authRoutes.map(renderRoute)}
 
-            <Route element={<AppLayout />}>
-              {appRoutes.map(renderRoute)}
-            </Route>
-          </Routes>
-        </Suspense>
-      </AuthMonitor>
+          <Route element={<AppLayout />}>
+            {appRoutes.map(renderRoute)}
+          </Route>
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

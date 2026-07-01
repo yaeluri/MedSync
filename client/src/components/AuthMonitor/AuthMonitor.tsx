@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { verifySession, clearSession, loadSession, RoleMismatchError } from '../../api/auth';
 import { RoleMismatchDialog } from '../RoleMismatchDialog/RoleMismatchDialog';
@@ -11,38 +11,36 @@ export const AuthMonitor: React.FC<{ children: React.ReactNode }> = ({ children 
   const navigate = useNavigate();
   const location = useLocation();
   const [isRoleTampered, setIsRoleTampered] = useState(false);
-  const checking = useRef(false);
 
   const isAuthRoute = AUTH_ROUTES.some(route => location.pathname.startsWith(route));
-
-  const runCheck = useCallback(async () => {
-    if (checking.current) return;
-    if (!loadSession()) return;        // not logged in, nothing to verify
-    checking.current = true;
-    try {
-      await verifySession();
-    } catch (error) {
-      if (error instanceof RoleMismatchError) {
-        setIsRoleTampered(true);
-      }
-    } finally {
-      checking.current = false;
-    }
-  }, []);
 
   useEffect(() => {
     if (isAuthRoute || isRoleTampered) return;
 
-    runCheck();
+    let checking = false;
+    const runCheck = async () => {
+      if (checking) return;
+      if (!loadSession()) return; // not logged in, nothing to verify
+      checking = true;
+      try {
+        await verifySession();
+      } catch (error) {
+        if (error instanceof RoleMismatchError) {
+          setIsRoleTampered(true);
+        }
+      } finally {
+        checking = false;
+      }
+    };
+
+    // No initial call: RequireRole already verifies on every route change.
+    // AuthMonitor's job is only to catch DB-side changes during idle time.
     const interval = window.setInterval(runCheck, VERIFY_INTERVAL_MS);
-    const onFocus = () => runCheck();
-    window.addEventListener('focus', onFocus);
 
     return () => {
       window.clearInterval(interval);
-      window.removeEventListener('focus', onFocus);
     };
-  }, [isAuthRoute, isRoleTampered, runCheck]);
+  }, [isAuthRoute, isRoleTampered]);
 
   const handleConfirmRelogin = () => {
     clearSession();

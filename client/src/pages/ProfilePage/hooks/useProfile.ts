@@ -35,14 +35,14 @@ export function useProfile() {
   }, [session?.userId]);
 
   useEffect(() => {
-    if (session?.caregiverId) {
+    if (session?.role === 'doctor' && session?.caregiverId) {
       getCaregiver(session.caregiverId)
         .then(c => setIdNumber(c.licenseNumber ?? ''))
         .catch(() => setIdNumber(''));
     } else {
       setIdNumber('');
     }
-  }, [session?.caregiverId]);
+  }, [session?.role, session?.caregiverId]);
 
   useEffect(() => {
     if (session?.patientId) {

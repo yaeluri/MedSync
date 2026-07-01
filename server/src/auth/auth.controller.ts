@@ -33,13 +33,16 @@ export class AuthController {
   @Get('me')
   me(@Req() req: any) {
     const user = req.user;
+    const role = req.userRole;
     return {
       userId: user.id,
       email: user.email,
       fullName: user.fullName,
-      role: req.userRole,
-      patientId: user.patient?.id,
-      caregiverId: user.caregiver?.id,
+      role,
+      // Expose only the id that matches the user's role, so clients never
+      // attempt role-restricted lookups (e.g. /api/caregivers/:id) for the wrong role.
+      patientId: role === 'patient' ? user.patient?.id : undefined,
+      caregiverId: role === 'doctor' ? user.caregiver?.id : undefined,
     };
   }
 }
