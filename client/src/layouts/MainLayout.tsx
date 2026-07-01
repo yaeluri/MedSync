@@ -6,7 +6,6 @@ interface NavItem { to: string; label: string; }
 
 const NAV_LINKS: NavItem[] = [
   { to: '/documents', label: 'Documents' },
-  { to: '/visit',     label: 'Visit Recording' },
 ];
 
 const navLinkStyle = ({ isActive }: { isActive: boolean }) => ({
