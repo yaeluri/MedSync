@@ -20,7 +20,7 @@ export function useVisitForm() {
   const navigate = useNavigate();
   const { id: patientId, visitId } = useParams<{ id: string; visitId: string }>();
   const session = loadSession();
-  const { status, transcript, summary, timer, start, stop } = useAudioRecorder();
+  const { status, isStarting, transcript, summary, timer, start, stop } = useAudioRecorder();
 
   const [subjective, setSubjective] = useState('');
   const [diagnosis, setDiagnosis] = useState('');
@@ -151,7 +151,10 @@ export function useVisitForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visitId]);
 
-  const handleRecord = () => (isRecording ? stop() : start());
+  const handleRecord = () => {
+    if (isStarting) return;
+    return isRecording ? stop() : start();
+  };
 
   const handleAddMedicine = () => {
     const name = medicineSearch.trim();
@@ -287,7 +290,7 @@ export function useVisitForm() {
 
   return {
     navigate,
-    isReadOnly, isLoadingVisit, isRecording, isProcessing, isSummarizing,
+    isReadOnly, isLoadingVisit, isRecording, isProcessing, isStarting, isSummarizing,
     visitDate, timer, saving, toast, setToast, patientInfo, liveSummary,
     // text fields
     subjective, setSubjective, diagnosis, setDiagnosis, plan, setPlan,

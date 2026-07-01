@@ -12,7 +12,7 @@ interface AiSummaryPanelProps {
 }
 
 export const AiSummaryPanel: React.FC<AiSummaryPanelProps> = ({ form }) => {
-  const { isProcessing, isReadOnly, isRecording, isSummarizing, liveSummary, timer, handleRecord } = form;
+  const { isProcessing, isReadOnly, isRecording, isStarting, isSummarizing, liveSummary, timer, handleRecord } = form;
 
   return (
     <AiPanel>
@@ -66,14 +66,23 @@ export const AiSummaryPanel: React.FC<AiSummaryPanelProps> = ({ form }) => {
           <Button fullWidth
             variant={isRecording ? 'contained' : 'outlined'}
             color={isRecording ? 'error' : 'primary'}
-            startIcon={isRecording ? <StopIcon /> : <KeyboardVoiceIcon />}
+            startIcon={isStarting ? <CircularProgress size={16} color="inherit" /> : isRecording ? <StopIcon /> : <KeyboardVoiceIcon />}
             onClick={handleRecord}
+            disabled={isProcessing || isStarting}
             sx={{
               borderRadius: '10px', fontWeight: 600, fontSize: 14, py: 1.375,
               ...(isRecording ? {} : { borderColor: '#3b5bdb', color: '#3b5bdb', '&:hover': { background: '#eef2ff', borderColor: '#3b5bdb' } }),
+              ...(isStarting ? { opacity: 0.8, background: '#edf2ff' } : {}),
             }}>
-            {isRecording ? `עצור הקלטה  ${formatRecordingTime(timer)}` : 'הקלט שמע לביקור'}
+            {isStarting
+              ? 'מפעיל הקלטה...'
+              : isRecording
+                ? `עצור הקלטה  ${formatRecordingTime(timer)}`
+                : 'הקלט שמע לביקור'}
           </Button>
+          <Typography sx={{ mt: 1, fontSize: 12, color: '#495057', textAlign: 'right', direction: 'rtl', lineHeight: 1.45 }}>
+            שים לב: יש להפעיל את ההקלטה מתחילת הפגישה ועד סופה כדי להבטיח תיעוד מלא ומדויק.
+          </Typography>
         </Box>
       )}
     </AiPanel>
