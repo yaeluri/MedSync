@@ -63,6 +63,7 @@ export class PatientsController {
     return this.patientsService.findOne(id);
   }
 
+  // TODO(auth): admin-only. Currently unprotected — no auth guard infra exists in repo.
   @Post('medical-summary/regenerate-all')
   regenerateAllMedicalSummaries(): Promise<{
     total: number;

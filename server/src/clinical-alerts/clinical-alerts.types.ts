@@ -12,11 +12,14 @@ export interface ClinicalAlertDto {
   source: ClinicalAlertSource;
 }
 
-export interface CreateManualAllergyDto {
+export interface CreateManualAlertDto {
   label: string;
   severity: ClinicalAlertSeverity;
   category?: ClinicalAlertCategory;
 }
+
+/** @deprecated Use CreateManualAlertDto */
+export type CreateManualAllergyDto = CreateManualAlertDto;
 
 export interface BulkRegenerateResult {
   total: number;

@@ -12,7 +12,7 @@ import { ClinicalAlertsService } from './clinical-alerts.service';
 import {
   BulkRegenerateResult,
   ClinicalAlertDto,
-  CreateManualAllergyDto,
+  CreateManualAlertDto,
 } from './clinical-alerts.types';
 
 @Controller('api/patients')
@@ -34,11 +34,11 @@ export class ClinicalAlertsController {
   }
 
   @Post(':id/clinical-alerts')
-  createManualAllergy(
+  createManualAlert(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() body: CreateManualAllergyDto,
+    @Body() body: CreateManualAlertDto,
   ): Promise<ClinicalAlertDto> {
-    return this.service.createManualAllergy(id, body);
+    return this.service.createManualAlert(id, body);
   }
 
   @Delete(':id/clinical-alerts/:alertId')
@@ -50,6 +50,7 @@ export class ClinicalAlertsController {
     return this.service.deleteManualAlert(id, alertId);
   }
 
+  // TODO(auth): admin-only. Currently unprotected — no auth guard infra exists in repo.
   @Post('clinical-alerts/regenerate-all')
   regenerateAll(): Promise<BulkRegenerateResult> {
     return this.service.regenerateAll();

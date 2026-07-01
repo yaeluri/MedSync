@@ -23,7 +23,7 @@ import {
 import {
   BulkRegenerateResult,
   ClinicalAlertDto,
-  CreateManualAllergyDto,
+  CreateManualAlertDto,
 } from './clinical-alerts.types';
 
 const EXTRACTION_PROMPT = `אתה עוזר רפואי שמזהה אלמנטים קליניים קריטיים בלבד.
@@ -66,7 +66,7 @@ interface ExtractedAlert {
 @Injectable()
 export class ClinicalAlertsService implements OnModuleInit {
   private readonly logger = new Logger(ClinicalAlertsService.name);
-  private model!: GenerativeModel;
+  private model: GenerativeModel | undefined;
 
   constructor(
     @InjectRepository(PatientClinicalAlert)
@@ -86,7 +86,11 @@ export class ClinicalAlertsService implements OnModuleInit {
   onModuleInit(): void {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     if (!apiKey) {
-      throw new Error('Missing required environment variable: GEMINI_API_KEY');
+      this.model = undefined;
+      this.logger.warn(
+        'GEMINI_API_KEY not set — clinical alert AI extraction disabled (existing alerts preserved).',
+      );
+      return;
     }
     const genAI = new GoogleGenerativeAI(apiKey);
     this.model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
@@ -241,6 +245,12 @@ export class ClinicalAlertsService implements OnModuleInit {
   }
 
   async regenerateForPatient(patientId: string): Promise<ClinicalAlertDto[]> {
+    if (!this.model) {
+      this.logger.warn(
+        `Skipping clinical alert regeneration for patient ${patientId}: Gemini disabled.`,
+      );
+      return this.getForPatient(patientId);
+    }
     const context = await this.loadPatientContext(patientId);
 
     let extracted: ExtractedAlert[] = [];
@@ -328,9 +338,9 @@ export class ClinicalAlertsService implements OnModuleInit {
     return { total: patients.length, succeeded, failed };
   }
 
-  async createManualAllergy(
+  async createManualAlert(
     patientId: string,
-    input: CreateManualAllergyDto,
+    input: CreateManualAlertDto,
   ): Promise<ClinicalAlertDto> {
     const label = (input?.label ?? '').trim();
     if (!label) throw new BadRequestException('label is required');

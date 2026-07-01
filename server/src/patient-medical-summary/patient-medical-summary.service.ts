@@ -63,7 +63,8 @@ const UPDATE_PROMPT = `אתה מנתח נתונים רפואיים המסייע 
 @Injectable()
 export class PatientMedicalSummaryService implements OnModuleInit {
   private readonly logger = new Logger(PatientMedicalSummaryService.name);
-  private model!: GenerativeModel;
+  private model: GenerativeModel | undefined;
+  private readonly inFlight = new Map<string, Promise<void>>();
 
   constructor(
     @InjectRepository(PatientMedicalSummary)
@@ -83,7 +84,11 @@ export class PatientMedicalSummaryService implements OnModuleInit {
   onModuleInit(): void {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     if (!apiKey) {
-      throw new Error('Missing required environment variable: GEMINI_API_KEY');
+      this.model = undefined;
+      this.logger.warn(
+        'GEMINI_API_KEY not set — patient medical summary generation disabled.',
+      );
+      return;
     }
     const genAI = new GoogleGenerativeAI(apiKey);
     this.model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
@@ -109,6 +114,22 @@ export class PatientMedicalSummaryService implements OnModuleInit {
   }
 
   async generateAndSave(patientId: string): Promise<void> {
+    const existing = this.inFlight.get(patientId);
+    if (existing) return existing;
+    const promise = this.doGenerateAndSave(patientId).finally(() => {
+      this.inFlight.delete(patientId);
+    });
+    this.inFlight.set(patientId, promise);
+    return promise;
+  }
+
+  private async doGenerateAndSave(patientId: string): Promise<void> {
+    if (!this.model) {
+      this.logger.warn(
+        `Skipping medical summary generation for patient ${patientId}: Gemini disabled.`,
+      );
+      return;
+    }
     try {
       // Load unprocessed visit summaries for this patient
       const newVisitSummaries = await this.visitSummaryRepo
@@ -248,6 +269,12 @@ export class PatientMedicalSummaryService implements OnModuleInit {
   }
 
   async forceRegenerate(patientId: string): Promise<void> {
+    if (!this.model) {
+      this.logger.warn(
+        `Skipping force regenerate for patient ${patientId}: Gemini disabled.`,
+      );
+      return;
+    }
     // Load ALL visit and document summaries (not just unprocessed)
     const visitSummaries = await this.visitSummaryRepo
       .createQueryBuilder('vs')
