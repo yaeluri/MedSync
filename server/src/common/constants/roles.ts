@@ -1,4 +1,4 @@
-import { IRole } from "src/entities";
+import { IRole } from '../../entities';
 
 export const ROLE_DOCTOR = 'doctor';
 export const ROLE_PATIENT = 'patient';
