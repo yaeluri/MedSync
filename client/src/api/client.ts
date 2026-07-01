@@ -40,6 +40,7 @@ export async function apiRequest<T = any>(
     if (res.status === 401) {
       localStorage.removeItem('medsync.session');
       localStorage.removeItem('role');
+      localStorage.removeItem('medsync.viewAs');
     }
     const detail = await readError(res);
     const err = new Error(detail) as ApiError;

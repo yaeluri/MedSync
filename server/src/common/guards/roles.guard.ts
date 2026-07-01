@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator';
@@ -28,7 +29,13 @@ export class RolesGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const userRole = request.userRole as string;
+    const userRole = request.userRole as string | undefined;
+
+    if (!userRole) {
+      throw new UnauthorizedException(
+        'Authenticated user has no assigned role. Ensure AuthGuard runs before RolesGuard.',
+      );
+    }
 
     // Get all roles the user effectively has (including inherited ones)
     const effectiveRoles = ROLE_HIERARCHY[userRole] ?? [userRole];

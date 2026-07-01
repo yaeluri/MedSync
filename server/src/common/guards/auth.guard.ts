@@ -9,7 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { UsersService } from '../../users/users.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { ALL_ROLES } from '../constants/roles';
-import { IRole } from 'src/entities';
+import { IRole } from '../../entities';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -27,9 +27,10 @@ export class AuthGuard implements CanActivate {
     if (isPublic) return true;
 
     const request = context.switchToHttp().getRequest();
-    const userId = request.headers['x-user-id'];
+    const rawUserId = request.headers['x-user-id'];
+    const userId = Array.isArray(rawUserId) ? rawUserId[0] : rawUserId;
 
-    if (!userId) {
+    if (!userId || typeof userId !== 'string') {
       throw new UnauthorizedException('Authentication required');
     }
 

@@ -67,11 +67,12 @@ export class UsersService {
     return this.strip(user);
   }
 
- async findUserByIdWithRole(id: string): Promise<User | null> {
-    return this.repo.findOne({
+ async findUserByIdWithRole(id: string): Promise<SafeUser | null> {
+    const user = await this.repo.findOne({
       where: { id },
       relations: ['role', 'patient', 'caregiver'],
     });
+    return user ? this.strip(user) : null;
   }
 
   findRawByEmail(email: string): Promise<User | null> {
