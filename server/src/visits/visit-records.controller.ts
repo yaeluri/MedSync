@@ -19,6 +19,8 @@ import {
   VisitRecordsService,
   VisitSummaryInput,
 } from './visit-records.service';
+import { Roles } from '../common/decorators/roles.decorator';
+import { ROLE_DOCTOR } from '../common/constants/roles';
 
 @Controller('api/visits-records')
 export class VisitRecordsController {
@@ -37,11 +39,13 @@ export class VisitRecordsController {
     return this.service.findOne(id);
   }
 
+  @Roles(ROLE_DOCTOR)
   @Post()
   create(@Body() body: VisitInput) {
     return this.service.create(body);
   }
 
+  @Roles(ROLE_DOCTOR)
   @Patch(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -50,12 +54,14 @@ export class VisitRecordsController {
     return this.service.update(id, body);
   }
 
+  @Roles(ROLE_DOCTOR)
   @Delete(':id')
   @HttpCode(204)
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.service.remove(id);
   }
 
+  @Roles(ROLE_DOCTOR)
   @Put(':id/recording')
   upsertRecording(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -64,6 +70,7 @@ export class VisitRecordsController {
     return this.service.upsertRecording(id, body);
   }
 
+  @Roles(ROLE_DOCTOR)
   @Put(':id/summary')
   upsertSummary(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -72,6 +79,7 @@ export class VisitRecordsController {
     return this.service.upsertSummary(id, body);
   }
 
+  @Roles(ROLE_DOCTOR)
   @Post(':id/diagnoses')
   addDiagnosis(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -80,6 +88,7 @@ export class VisitRecordsController {
     return this.service.addDiagnosis(id, body);
   }
 
+  @Roles(ROLE_DOCTOR)
   @Delete(':id/diagnoses/:diagnosisId')
   @HttpCode(204)
   removeDiagnosis(
@@ -89,6 +98,7 @@ export class VisitRecordsController {
     return this.service.removeDiagnosis(id, diagnosisId);
   }
 
+  @Roles(ROLE_DOCTOR)
   @Post(':id/medicines')
   addMedicine(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -97,6 +107,7 @@ export class VisitRecordsController {
     return this.service.addMedicine(id, body);
   }
 
+  @Roles(ROLE_DOCTOR)
   @Delete(':id/medicines/:medicineId')
   @HttpCode(204)
   removeMedicine(

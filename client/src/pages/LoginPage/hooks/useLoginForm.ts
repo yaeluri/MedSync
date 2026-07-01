@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login, saveSession } from '../../../api/auth';
+import { login, saveSession, setViewAs } from '../../../api/auth';
 import { homeForRole } from '../../../components/RequireRole/RequireRole';
 
 export function useLoginForm(role?: string) {
@@ -19,17 +19,15 @@ export function useLoginForm(role?: string) {
     }
     setSubmitting(true);
     try {
-      const result = await login(email, password);
-      if (role === 'therapist' && result.role !== 'doctor') {
-        setError('אין לך הרשאות מטפל');
-        return;
-      }
-      if (role === 'patient' && result.role !== 'patient') {
-        setError('אין לך הרשאות מטופל');
-        return;
-      }
+      const result = await login(email, password, role);
       saveSession(result);
-      navigate(homeForRole(result.role));
+      if (role === 'patient') {
+        setViewAs('patient');
+        navigate('/dashboard');
+      } else {
+        setViewAs(result.role);
+        navigate(homeForRole(result.role));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'התחברות נכשלה');
     } finally {

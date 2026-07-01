@@ -37,7 +37,7 @@ export function useCurrentDoctor(): CurrentDoctor {
   });
 
   useEffect(() => {
-    if (!session?.caregiverId) return;
+    if (session?.role !== 'doctor' || !session?.caregiverId) return;
     let active = true;
     getCaregiver(session.caregiverId)
       .then(c => {
@@ -52,7 +52,7 @@ export function useCurrentDoctor(): CurrentDoctor {
     return () => {
       active = false;
     };
-  }, [session?.caregiverId, session?.fullName]);
+  }, [session?.role, session?.caregiverId, session?.fullName]);
 
   return doctor;
 }
