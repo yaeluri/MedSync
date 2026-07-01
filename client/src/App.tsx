@@ -34,7 +34,6 @@ function App() {
             <Route element={<RequireRole allow={["patient"]} />}>
               <Route path="/dashboard" element={<PatientDashboard />} />
               <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/visit"     element={<VisitPage />} />
             </Route>
 
             {/* Doctor-only */}
