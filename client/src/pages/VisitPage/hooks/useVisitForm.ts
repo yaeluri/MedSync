@@ -1,0 +1,310 @@
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAudioRecorder } from '../../../hooks/useAudioRecorder';
+import {
+  summarizeText, createVisit, upsertVisitSummary,
+  addVisitDiagnosis, addVisitMedicine, updateVisit, getVisit,
+  VisitSummaryObject,
+} from '../../../api/visits';
+import { loadSession } from '../../../api/auth';
+import { getDiagnoses, Diagnosis } from '../../../api/diagnoses';
+import { getMedicines, Medicine } from '../../../api/medicines';
+import { ToastState, DiagnosisItem, MedicineItem, PatientInfo } from '../constants';
+import { parseSummaryText, buildSummaryText } from '../utils';
+
+/**
+ * Owns all VisitPage state: recorder, AI summary, visit loading, vitals,
+ * diagnoses/medicines lists and the save flow.
+ */
+export function useVisitForm() {
+  const navigate = useNavigate();
+  const { id: patientId, visitId } = useParams<{ id: string; visitId: string }>();
+  const session = loadSession();
+  const { status, transcript, summary, timer, start, stop } = useAudioRecorder();
+
+  const [subjective, setSubjective] = useState('');
+  const [diagnosis, setDiagnosis] = useState('');
+  const [plan, setPlan] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [isReadOnly, setIsReadOnly] = useState(false);
+  const [visitDate, setVisitDate] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastState>(null);
+
+  const [liveSummary, setLiveSummary] = useState<VisitSummaryObject | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [isLoadingVisit, setIsLoadingVisit] = useState(false);
+  const lastSummarizedRef = useRef<string>('');
+  const [patientInfo, setPatientInfo] = useState<PatientInfo | null>(null);
+
+  // Vitals
+  const [bloodPressure, setBloodPressure] = useState('');
+  const [pulse, setPulse] = useState('');
+  const [bodyTemp, setBodyTemp] = useState('');
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [oxygenSat, setOxygenSat] = useState('');
+  // Visit metadata
+  const [visitType, setVisitType] = useState('');
+  const [followUpDate, setFollowUpDate] = useState('');
+  const [referralNotes, setReferralNotes] = useState('');
+  // Diagnoses list
+  const [diagnosesList, setDiagnosesList] = useState<DiagnosisItem[]>([]);
+  const [diagnosisSearch, setDiagnosisSearch] = useState('');
+  const [diagnosisOptions, setDiagnosisOptions] = useState<Diagnosis[]>([]);
+  // Medicines list
+  const [medicinesList, setMedicinesList] = useState<MedicineItem[]>([]);
+  const [medicineSearch, setMedicineSearch] = useState('');
+  const [medicineOptions, setMedicineOptions] = useState<Medicine[]>([]);
+  const [medicineDosage, setMedicineDosage] = useState('');
+  const [medicineFrequency, setMedicineFrequency] = useState('');
+  const [medicineDuration, setMedicineDuration] = useState('');
+
+  const isRecording = status === 'recording';
+  const isProcessing = status === 'processing';
+
+  // Pre-load options so the dropdowns are ready immediately.
+  useEffect(() => {
+    getDiagnoses().then(res => setDiagnosisOptions(res.slice(0, 30))).catch(() => {});
+    getMedicines().then(res => setMedicineOptions(res.slice(0, 30))).catch(() => {});
+  }, []);
+
+  // Debounced diagnosis search.
+  useEffect(() => {
+    if (!diagnosisSearch.trim()) return;
+    const debounceTimer = window.setTimeout(() => {
+      getDiagnoses(diagnosisSearch).then(res => setDiagnosisOptions(res.slice(0, 10))).catch(() => {});
+    }, 250);
+    return () => window.clearTimeout(debounceTimer);
+  }, [diagnosisSearch]);
+
+  // Debounced medicine search.
+  useEffect(() => {
+    if (!medicineSearch.trim()) return;
+    const debounceTimer = window.setTimeout(() => {
+      getMedicines(medicineSearch).then(res => setMedicineOptions(res.slice(0, 10))).catch(() => {});
+    }, 250);
+    return () => window.clearTimeout(debounceTimer);
+  }, [medicineSearch]);
+
+  // Load existing visit when visitId is in the URL.
+  useEffect(() => {
+    if (!visitId) return;
+    let active = true;
+    setIsLoadingVisit(true);
+    getVisit(visitId).then(visitData => {
+      if (!active) return;
+      setIsReadOnly(!!session?.patientId && !session?.caregiverId);
+      setVisitDate(visitData.visitDate ? new Date(visitData.visitDate).toLocaleDateString() : null);
+
+      const { subjective: patientComplaints, diagnosis: diagnosisText, recommendations } = parseSummaryText(visitData.summary?.summaryText ?? '');
+      setSubjective(patientComplaints);
+      setDiagnosis(diagnosisText);
+      setPlan(recommendations);
+      lastSummarizedRef.current = patientComplaints;
+      setLiveSummary({
+        patientComplaints: patientComplaints || 'Not documented.',
+        diagnosis: diagnosisText || 'Not documented.',
+        doctorsRecommendations: recommendations || 'Not documented.',
+      });
+
+      if (visitData.patient?.user) {
+        const patientUser = visitData.patient.user;
+        const dateOfBirth = patientUser.birthDate ? new Date(patientUser.birthDate).toLocaleDateString('en-GB') : undefined;
+        setPatientInfo({
+          name: patientUser.fullName, phone: patientUser.phone, idNumber: visitData.patient.idNumber,
+          dob: dateOfBirth, hmo: visitData.patient.hmo, bloodType: visitData.patient.bloodType,
+        });
+      }
+
+      setBloodPressure(visitData.bloodPressure ?? '');
+      setPulse(visitData.pulse ?? '');
+      setBodyTemp(visitData.bodyTemp ?? '');
+      setWeight(visitData.weight ?? '');
+      setHeight(visitData.height ?? '');
+      setOxygenSat(visitData.oxygenSat ?? '');
+      setVisitType(visitData.visitType ?? '');
+      setFollowUpDate(visitData.followUpDate ?? '');
+      setReferralNotes(visitData.referralNotes ?? '');
+
+      if (visitData.diagnoses && visitData.diagnoses.length > 0) {
+        setDiagnosesList(visitData.diagnoses.map((diagEntry: any) => ({
+          code: diagEntry.diagnosis?.code ?? '',
+          description: diagEntry.diagnosis?.description ?? '',
+        })));
+      }
+      if (visitData.medicines && visitData.medicines.length > 0) {
+        setMedicinesList(visitData.medicines.map((medEntry: any) => ({
+          name: medEntry.medicine?.name ?? '',
+          dosage: medEntry.dosage ?? '',
+          frequency: medEntry.frequency ?? '',
+          duration: medEntry.duration ?? '',
+          instructions: medEntry.instructions,
+        })));
+      }
+    }).catch((err: any) => {
+      if (!active) return;
+      setToast({ severity: 'error', message: `Load error: ${err?.message || 'Failed to load visit data.'}` });
+    }).finally(() => {
+      if (active) setIsLoadingVisit(false);
+    });
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visitId]);
+
+  const handleRecord = () => (isRecording ? stop() : start());
+
+  const handleAddMedicine = () => {
+    const name = medicineSearch.trim();
+    if (!name || !medicineDosage.trim() || !medicineFrequency.trim() || !medicineDuration.trim()) return;
+    setMedicinesList(prev => [...prev, {
+      name, dosage: medicineDosage.trim(), frequency: medicineFrequency.trim(), duration: medicineDuration.trim(),
+    }]);
+    setMedicineSearch(''); setMedicineDosage(''); setMedicineFrequency(''); setMedicineDuration('');
+  };
+
+  const removeDiagnosis = (index: number) =>
+    setDiagnosesList(prev => prev.filter((_, idx) => idx !== index));
+  const addDiagnosis = (item: DiagnosisItem) =>
+    setDiagnosesList(prev => (prev.some(d => d.code === item.code) ? prev : [...prev, item]));
+  const removeMedicine = (index: number) =>
+    setMedicinesList(prev => prev.filter((_, idx) => idx !== index));
+
+  const handleSave = async () => {
+    if (saving) return;
+    if (!patientId) {
+      setToast({ severity: 'warning', message: 'פתח ביקור מפרופיל מטופל כדי לשמור.' });
+      return;
+    }
+    if (!session?.caregiverId) {
+      setToast({ severity: 'error', message: 'רק רופאים מחוברים יכולים לשמור ביקור.' });
+      return;
+    }
+    const hasAnyContent = subjective.trim() || diagnosis.trim() || plan.trim() || !!liveSummary;
+    if (!hasAnyContent) {
+      setToast({ severity: 'warning', message: 'הוסף תלונה, אבחנה או המלצות לפני שמירה.' });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const vitalsAndMeta = {
+        bloodPressure: bloodPressure.trim() || undefined,
+        pulse: pulse.trim() || undefined,
+        bodyTemp: bodyTemp.trim() || undefined,
+        weight: weight.trim() || undefined,
+        height: height.trim() || undefined,
+        oxygenSat: oxygenSat.trim() || undefined,
+        visitType: visitType || undefined,
+        followUpDate: followUpDate || undefined,
+        referralNotes: referralNotes.trim() || undefined,
+      };
+
+      const targetId = visitId ?? (await createVisit({
+        patientId,
+        caregiverId: session.caregiverId,
+        visitDate: new Date().toISOString(),
+        ...vitalsAndMeta,
+      })).id;
+
+      const summaryText = buildSummaryText(subjective, diagnosis, plan);
+      if (summaryText) {
+        await upsertVisitSummary(targetId, {
+          summaryText,
+          visitType: transcript ? 'RECORDING' : 'MANUAL_INPUT',
+        });
+      }
+
+      if (visitId) {
+        await updateVisit(targetId, vitalsAndMeta);
+      }
+
+      for (const item of diagnosesList) {
+        await addVisitDiagnosis(targetId, { diagnosisCode: item.code, diagnosisDescription: item.description });
+      }
+      for (const item of medicinesList) {
+        await addVisitMedicine(targetId, {
+          medicineName: item.name, dosage: item.dosage, frequency: item.frequency,
+          duration: item.duration, instructions: item.instructions,
+        });
+      }
+
+      setToast({ severity: 'success', message: 'ביקור נשמר.' });
+      window.setTimeout(() => navigate(`/patients/${patientId}`), 700);
+    } catch (err: any) {
+      setToast({ severity: 'error', message: err?.message || 'שמירת ביקור נכשלה.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // When the recorder summary arrives, seed the form fields.
+  useEffect(() => {
+    if (!summary) return;
+    setLiveSummary(summary);
+    const { patientComplaints, diagnosis: diagText, doctorsRecommendations } = summary;
+    const subjectiveText =
+      (patientComplaints && patientComplaints !== 'Not documented.') ? patientComplaints : transcript;
+    if (subjectiveText) {
+      setSubjective(prev => prev || subjectiveText);
+      lastSummarizedRef.current = subjectiveText;
+    }
+    if (diagText && diagText !== 'Not documented.') setDiagnosis(prev => prev || diagText);
+    if (doctorsRecommendations && doctorsRecommendations !== 'Not documented.') setPlan(prev => prev || doctorsRecommendations);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [summary]);
+
+  // Fallback: transcription succeeded but no summary.
+  useEffect(() => {
+    if (status !== 'done') return;
+    if (!transcript && !summary) {
+      setToast({ severity: 'error', message: 'תמלול נכשל. נסה שנית.' });
+      return;
+    }
+    if (transcript && !summary) setSubjective(prev => prev || transcript);
+  }, [status, transcript, summary]);
+
+  // Debounced re-summarization when subjective text changes.
+  useEffect(() => {
+    if (isReadOnly) return;
+    const text = subjective.trim();
+    if (!text || text === lastSummarizedRef.current) return;
+
+    const summarizeTimer = window.setTimeout(async () => {
+      setIsSummarizing(true);
+      try {
+        const data = await summarizeText(text);
+        setLiveSummary(data.summary);
+        lastSummarizedRef.current = text;
+      } catch {
+        // Keep previous summary on failure.
+      } finally {
+        setIsSummarizing(false);
+      }
+    }, 800);
+
+    return () => window.clearTimeout(summarizeTimer);
+  }, [subjective, isReadOnly]);
+
+  return {
+    navigate,
+    isReadOnly, isLoadingVisit, isRecording, isProcessing, isSummarizing,
+    visitDate, timer, saving, toast, setToast, patientInfo, liveSummary,
+    // text fields
+    subjective, setSubjective, diagnosis, setDiagnosis, plan, setPlan,
+    // vitals
+    bloodPressure, setBloodPressure, pulse, setPulse, bodyTemp, setBodyTemp,
+    weight, setWeight, height, setHeight, oxygenSat, setOxygenSat,
+    // metadata
+    visitType, setVisitType, followUpDate, setFollowUpDate, referralNotes, setReferralNotes,
+    // diagnoses
+    diagnosesList, diagnosisSearch, setDiagnosisSearch, diagnosisOptions, addDiagnosis, removeDiagnosis,
+    // medicines
+    medicinesList, medicineSearch, setMedicineSearch, medicineOptions,
+    medicineDosage, setMedicineDosage, medicineFrequency, setMedicineFrequency,
+    medicineDuration, setMedicineDuration, handleAddMedicine, removeMedicine,
+    // actions
+    handleRecord, handleSave,
+  };
+}
+
+export type VisitFormState = ReturnType<typeof useVisitForm>;
