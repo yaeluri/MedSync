@@ -21,13 +21,3 @@ export const FormCard = styled(Paper)({
   gap: 14, position: 'relative', overflow: 'visible',
   border: '1px solid #e9ecef', boxShadow: 'none',
 });
-
-export const AiPanel = styled(Box)({
-  width: '25%', minWidth: 220, flexShrink: 0,
-  borderRight: '1px solid #e9ecef', background: '#fff', display: 'flex', flexDirection: 'column',
-});
-
-export const SummarySectionCard = styled(Box)({
-  background: '#fff', border: '1px solid #e9ecef', borderRadius: 10,
-  padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 6,
-});

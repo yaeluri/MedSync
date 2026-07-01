@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAudioRecorder } from '../../../hooks/useAudioRecorder';
 import {
-  summarizeText, createVisit, upsertVisitSummary,
+  createVisit, upsertVisitSummary,
   addVisitDiagnosis, addVisitMedicine, updateVisit, getVisit,
-  VisitSummaryObject,
 } from '../../../api/visits';
 import { loadSession } from '../../../api/auth';
 import { getDiagnoses, Diagnosis } from '../../../api/diagnoses';
@@ -13,7 +12,7 @@ import { ToastState, DiagnosisItem, MedicineItem, PatientInfo } from '../constan
 import { parseSummaryText, buildSummaryText } from '../utils';
 
 /**
- * Owns all VisitPage state: recorder, AI summary, visit loading, vitals,
+ * Owns all VisitPage state: recorder, visit loading, vitals,
  * diagnoses/medicines lists and the save flow.
  */
 export function useVisitForm() {
@@ -30,10 +29,7 @@ export function useVisitForm() {
   const [visitDate, setVisitDate] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState>(null);
 
-  const [liveSummary, setLiveSummary] = useState<VisitSummaryObject | null>(null);
-  const [isSummarizing, setIsSummarizing] = useState(false);
   const [isLoadingVisit, setIsLoadingVisit] = useState(false);
-  const lastSummarizedRef = useRef<string>('');
   const [patientInfo, setPatientInfo] = useState<PatientInfo | null>(null);
 
   // Vitals
@@ -100,12 +96,6 @@ export function useVisitForm() {
       setSubjective(patientComplaints);
       setDiagnosis(diagnosisText);
       setPlan(recommendations);
-      lastSummarizedRef.current = patientComplaints;
-      setLiveSummary({
-        patientComplaints: patientComplaints || 'Not documented.',
-        diagnosis: diagnosisText || 'Not documented.',
-        doctorsRecommendations: recommendations || 'Not documented.',
-      });
 
       if (visitData.patient?.user) {
         const patientUser = visitData.patient.user;
@@ -182,7 +172,7 @@ export function useVisitForm() {
       setToast({ severity: 'error', message: 'רק רופאים מחוברים יכולים לשמור ביקור.' });
       return;
     }
-    const hasAnyContent = subjective.trim() || diagnosis.trim() || plan.trim() || !!liveSummary;
+    const hasAnyContent = subjective.trim() || diagnosis.trim() || plan.trim();
     if (!hasAnyContent) {
       setToast({ severity: 'warning', message: 'הוסף תלונה, אבחנה או המלצות לפני שמירה.' });
       return;
@@ -243,13 +233,11 @@ export function useVisitForm() {
   // When the recorder summary arrives, seed the form fields.
   useEffect(() => {
     if (!summary) return;
-    setLiveSummary(summary);
     const { patientComplaints, diagnosis: diagText, doctorsRecommendations } = summary;
     const subjectiveText =
       (patientComplaints && patientComplaints !== 'Not documented.') ? patientComplaints : transcript;
     if (subjectiveText) {
       setSubjective(prev => prev || subjectiveText);
-      lastSummarizedRef.current = subjectiveText;
     }
     if (diagText && diagText !== 'Not documented.') setDiagnosis(prev => prev || diagText);
     if (doctorsRecommendations && doctorsRecommendations !== 'Not documented.') setPlan(prev => prev || doctorsRecommendations);
@@ -266,32 +254,10 @@ export function useVisitForm() {
     if (transcript && !summary) setSubjective(prev => prev || transcript);
   }, [status, transcript, summary]);
 
-  // Debounced re-summarization when subjective text changes.
-  useEffect(() => {
-    if (isReadOnly) return;
-    const text = subjective.trim();
-    if (!text || text === lastSummarizedRef.current) return;
-
-    const summarizeTimer = window.setTimeout(async () => {
-      setIsSummarizing(true);
-      try {
-        const data = await summarizeText(text);
-        setLiveSummary(data.summary);
-        lastSummarizedRef.current = text;
-      } catch {
-        // Keep previous summary on failure.
-      } finally {
-        setIsSummarizing(false);
-      }
-    }, 800);
-
-    return () => window.clearTimeout(summarizeTimer);
-  }, [subjective, isReadOnly]);
-
   return {
     navigate,
-    isReadOnly, isLoadingVisit, isRecording, isProcessing, isStarting, isSummarizing,
-    visitDate, timer, saving, toast, setToast, patientInfo, liveSummary,
+    isReadOnly, isLoadingVisit, isRecording, isProcessing, isStarting,
+    visitDate, timer, saving, toast, setToast, patientInfo,
     // text fields
     subjective, setSubjective, diagnosis, setDiagnosis, plan, setPlan,
     // vitals
