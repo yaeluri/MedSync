@@ -7,9 +7,10 @@ export interface IPageHeaderProps {
   title: string;
   subtitle?: string;
   onBack?: () => void;
+  showDoctorSubtitle?: boolean;
 }
 
-export const PageHeader: React.FC<IPageHeaderProps> = ({ title, subtitle, onBack }) => {
+export const PageHeader: React.FC<IPageHeaderProps> = ({ title, subtitle, onBack, showDoctorSubtitle = true }) => {
   const doctor = useCurrentDoctor();
 
   return (
@@ -48,9 +49,11 @@ export const PageHeader: React.FC<IPageHeaderProps> = ({ title, subtitle, onBack
           <Typography noWrap sx={{ fontSize: { xs: 12, sm: 14 }, fontWeight: 600, color: '#1a1a2e' }}>
             {doctor.fullName}
           </Typography>
-          <Typography noWrap sx={{ fontSize: { xs: 10.5, sm: 12 }, color: '#868e96' }}>
-            {doctor.specialization}
-          </Typography>
+          {showDoctorSubtitle && (
+            <Typography noWrap sx={{ fontSize: { xs: 10.5, sm: 12 }, color: '#868e96' }}>
+              {doctor.specialization}
+            </Typography>
+          )}
         </Box>
         <Box
           sx={{
