@@ -34,7 +34,6 @@ function App() {
             <Route element={<RequireRole allow={["patient"]} />}>
               <Route path="/dashboard" element={<PatientDashboard />} />
               <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/patients/:id/visits/:visitId" element={<VisitPage />} />
             </Route>
 
             {/* Doctor-only */}
@@ -42,13 +41,13 @@ function App() {
               <Route path="/patients"                     element={<PatientsListPage />} />
               <Route path="/patients/:id"                 element={<PatientDashboardPage />} />
               <Route path="/patients/:id/visit"           element={<VisitPage />} />
-              <Route path="/patients/:id/visits/:visitId" element={<VisitPage />} />
               <Route path="/patients/:id/documents"       element={<DocumentsPage />} />
             </Route>
 
             {/* Any authenticated user */}
             <Route element={<RequireRole />}>
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/patients/:id/visits/:visitId" element={<VisitPage />} />
             </Route>
           </Route>
 
