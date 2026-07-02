@@ -6,7 +6,6 @@ import { PageRoot, FormColumn } from './styled';
 import { useVisitForm } from './hooks/useVisitForm';
 import { PatientInfoBar } from './components/PatientInfoBar';
 import { VisitFormCard } from './components/VisitFormCard';
-import { AiSummaryPanel } from './components/AiSummaryPanel';
 
 const VisitPage: React.FC = () => {
   const form = useVisitForm();
@@ -32,22 +31,18 @@ const VisitPage: React.FC = () => {
 
       {patientInfo && <PatientInfoBar info={patientInfo} />}
 
-      <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <FormColumn>
-          <VisitFormCard form={form} />
+      <FormColumn>
+        <VisitFormCard form={form} />
 
-          {!isReadOnly && (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-start', px: 0.5 }}>
-              <Button variant="contained" size="large" onClick={handleSave} disabled={saving}
-                sx={{ borderRadius: '12px', px: 4.5, py: 1.5, fontSize: 15, fontWeight: 700, letterSpacing: '0.02em', background: '#3b5bdb', '&:hover': { background: '#3451c7' } }}>
-                {saving ? 'שומר…' : 'שמור ואשר'}
-              </Button>
-            </Box>
-          )}
-        </FormColumn>
-
-        <AiSummaryPanel form={form} />
-      </Box>
+        {!isReadOnly && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start', px: 0.5 }}>
+            <Button variant="contained" size="large" onClick={handleSave} disabled={saving}
+              sx={{ borderRadius: '12px', px: 4.5, py: 1.5, fontSize: 15, fontWeight: 700, letterSpacing: '0.02em', background: '#3b5bdb', '&:hover': { background: '#3451c7' } }}>
+              {saving ? 'שומר…' : 'שמור ואשר'}
+            </Button>
+          </Box>
+        )}
+      </FormColumn>
 
       <Toast toast={toast} onClose={() => setToast(null)} />
     </PageRoot>
