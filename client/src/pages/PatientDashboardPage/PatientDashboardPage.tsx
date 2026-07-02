@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 import { getPatientById, Patient, refreshMedicalSummary, ClinicalAlert } from '../../api/patients';
 import { useAsyncData } from '../../hooks/useAsyncData';
-import { genderLabel } from '../../utils/format';
+import { getGenderLabel } from '../../utils/format';
 import PageHeader from '../../components/PageHeader/PageHeader';
 import InfoGrid from '../../components/InfoGrid/InfoGrid';
 import DocumentSummaryModal from '../../components/DocumentSummaryModal/DocumentSummaryModal';
@@ -67,7 +67,7 @@ export const PatientDashboardPage: React.FC = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
       <PageHeader
         title={fullName}
-        subtitle={`ת"ז: ${idLabel} • גיל ${displayPatient.age} • ${genderLabel(displayPatient.gender)}`}
+        subtitle={`ת"ז: ${idLabel} • גיל ${displayPatient.age} • ${getGenderLabel(displayPatient.gender)}`}
         onBack={() => navigate('/patients')}
       />
       <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', p: { xs: 2, sm: 3 }, display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>

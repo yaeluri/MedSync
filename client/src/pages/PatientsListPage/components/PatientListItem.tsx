@@ -4,16 +4,11 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { PatientSummary } from '../../../api/patients';
 import ClickableCard from '../../../components/ClickableCard/ClickableCard';
 import { initials } from '../utils';
+import { getGenderLabel } from '../../../utils/format';
 
 interface PatientListItemProps {
   patient: PatientSummary;
 }
-
-const genderLabel = (gender?: string) => {
-  if (gender === 'Male') return 'זכר';
-  if (gender === 'Female') return 'נקבה';
-  return gender;
-};
 
 export const PatientListItem: React.FC<PatientListItemProps> = ({ patient }) => (
   <ClickableCard to={`/patients/${patient.id}`}>
@@ -44,7 +39,7 @@ export const PatientListItem: React.FC<PatientListItemProps> = ({ patient }) => 
         <Typography sx={{ fontSize: 13, color: '#868e96' }}>
           ת"ז: {patient.idNumber ?? patient.id.slice(0, 8).toUpperCase()}
           {patient.age > 0 ? ` • גיל ${patient.age}` : ''}
-          {patient.gender ? ` • ${genderLabel(patient.gender)}` : ''}
+          {patient.gender ? ` • ${getGenderLabel(patient.gender)}` : ''}
         </Typography>
       </Box>
       <ChevronLeftIcon sx={{ color: '#ced4da', flexShrink: 0 }} />
