@@ -9,8 +9,7 @@ async function bootstrap() {
       'http://localhost:5174',
       'http://10.10.248.140',
       'https://10.10.248.140',
-      'http://medsync',
-      'https://medsync',
+      'https://medsync.cs.colman.ac.il',
     ],
   });
   await app.listen(process.env.PORT ?? 3000);
