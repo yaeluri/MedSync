@@ -3,6 +3,8 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { User } from '../entities/user/userEntity';
@@ -49,8 +51,15 @@ export interface AuthResult {
   email: string;
   fullName: string;
   role: 'patient' | 'doctor' | string;
+  accessToken?: string;
+  refreshToken?: string;
   patientId?: string;
   caregiverId?: string;
+}
+
+export interface TokenPair {
+  accessToken: string;
+  refreshToken: string;
 }
 
 @Injectable()
@@ -60,8 +69,53 @@ export class AuthService {
     @InjectRepository(Patient) private readonly patients: Repository<Patient>,
     @InjectRepository(Caregiver) private readonly caregivers: Repository<Caregiver>,
     private readonly roles: RolesService,
+    private readonly jwtService: JwtService,
+    private readonly config: ConfigService,
     private readonly dataSource: DataSource,
   ) {}
+
+  private get refreshSecret(): string {
+    return this.config.get<string>('JWT_REFRESH_SECRET') || 'dev-jwt-refresh-secret-change-me';
+  }
+
+  private get refreshExpiresIn(): string {
+    return this.config.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d';
+  }
+
+  private issueAccessToken(userId: string): string {
+    return this.jwtService.sign({ sub: userId });
+  }
+
+  private issueRefreshToken(userId: string): string {
+    return this.jwtService.sign(
+      { sub: userId, type: 'refresh' },
+      { secret: this.refreshSecret, expiresIn: this.refreshExpiresIn as any },
+    );
+  }
+
+  /** Verifies a refresh token and mints a fresh access/refresh token pair. */
+  async refresh(refreshToken: string): Promise<TokenPair> {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Missing refresh token');
+    }
+    let payload: { sub?: string; type?: string };
+    try {
+      payload = this.jwtService.verify(refreshToken, { secret: this.refreshSecret });
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+    if (payload?.type !== 'refresh' || !payload.sub) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+    const user = await this.users.findOne({ where: { id: payload.sub } });
+    if (!user) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+    return {
+      accessToken: this.issueAccessToken(user.id),
+      refreshToken: this.issueRefreshToken(user.id),
+    };
+  }
 
   async registerPatient(input: RegisterPatientInput): Promise<AuthResult> {
     if (!input?.email || !input?.password || !input?.fullName) {
@@ -102,6 +156,8 @@ export class AuthService {
         email: savedUser.email,
         fullName: savedUser.fullName,
         role: role.name,
+        accessToken: this.issueAccessToken(savedUser.id),
+        refreshToken: this.issueRefreshToken(savedUser.id),
         patientId: savedPatient.id,
       };
     });
@@ -150,6 +206,8 @@ export class AuthService {
         email: savedUser.email,
         fullName: savedUser.fullName,
         role: role.name,
+        accessToken: this.issueAccessToken(savedUser.id),
+        refreshToken: this.issueRefreshToken(savedUser.id),
         caregiverId: savedCaregiver.id,
       };
     });
@@ -192,6 +250,8 @@ export class AuthService {
       email: user.email,
       fullName: user.fullName,
       role: roleName,
+      accessToken: this.issueAccessToken(user.id),
+      refreshToken: this.issueRefreshToken(user.id),
       patientId: user.patient?.id,
       caregiverId: user.caregiver?.id,
     };

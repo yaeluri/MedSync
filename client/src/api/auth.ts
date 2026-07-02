@@ -7,6 +7,8 @@ export interface AuthResult {
   email: string;
   fullName: string;
   role: RoleName;
+  accessToken?: string;
+  refreshToken?: string;
   patientId?: string;
   caregiverId?: string;
 }

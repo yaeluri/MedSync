@@ -29,6 +29,12 @@ export class AuthController {
     return this.service.login(body);
   }
 
+  @Public()
+  @Post('refresh')
+  refresh(@Body() body: { refreshToken?: string }) {
+    return this.service.refresh(body?.refreshToken ?? '');
+  }
+
   /** Returns the authenticated user's session info (role, ids). */
   @Get('me')
   me(@Req() req: any) {
