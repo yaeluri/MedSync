@@ -47,7 +47,7 @@ export const AiSummaryPanel: React.FC<AiSummaryPanelProps> = ({ form }) => {
                         {label}
                       </Typography>
                     </Stack>
-                    <Typography sx={{ fontSize: 13, color: '#495057', lineHeight: 1.55, textAlign: 'right', direction: 'rtl', pl: 3.75 }}>
+                    <Typography sx={{ fontSize: 13, color: '#495057', lineHeight: 1.55, pl: 3.75 }}>
                       {liveSummary[key] || 'Not documented.'}
                     </Typography>
                   </SummarySectionCard>

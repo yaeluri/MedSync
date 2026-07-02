@@ -72,6 +72,14 @@ export const navGroupSx: SxProps<Theme> = {
   minWidth: 0,
 };
 
+export const logoutWrapperSx: SxProps<Theme> = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flex: { xs: 1, md: 'none' },
+  flexShrink: 0,
+};
+
 export const logoutButtonSx: SxProps<Theme> = {
   width: { xs: 44, md: 40 },
   height: { xs: 44, md: 40 },

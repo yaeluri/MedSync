@@ -11,6 +11,7 @@ import {
   asideSx,
   logoSx,
   logoutButtonSx,
+  logoutWrapperSx,
   mainSx,
   navGroupSx,
   navItemSx,
@@ -53,14 +54,16 @@ export const AppLayout: React.FC = () => {
           )}
         </Box>
 
-        <Tooltip title="התנתק" placement="left">
-          <IconButton
-            onClick={() => { clearSession(); navigate('/login'); }}
-            sx={logoutButtonSx}
-          >
-            <LogoutIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
+        <Box sx={logoutWrapperSx}>
+          <Tooltip title="התנתק" placement="left">
+            <IconButton
+              onClick={() => { clearSession(); navigate('/login'); }}
+              sx={logoutButtonSx}
+            >
+              <LogoutIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
     </Box>
   );

@@ -1,5 +1,6 @@
 export const genderLabel = (gender?: string): string => {
-  if (gender === 'Male') return 'זכר';
-  if (gender === 'Female') return 'נקבה';
+  const g = gender?.toLowerCase();
+  if (g === 'male') return 'זכר';
+  if (g === 'female') return 'נקבה';
   return gender ?? '';
 };

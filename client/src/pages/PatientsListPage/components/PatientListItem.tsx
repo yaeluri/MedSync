@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Avatar, Paper } from '@mui/material';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { PatientSummary } from '../../../api/patients';
 import ClickableCard from '../../../components/ClickableCard/ClickableCard';
 import { initials } from '../utils';
@@ -32,7 +32,11 @@ export const PatientListItem: React.FC<PatientListItemProps> = ({ patient }) => 
         transition: 'all 0.15s ease',
       }}
     >
-      <ChevronRightIcon sx={{ color: '#ced4da', flexShrink: 0 }} />
+      <Avatar
+        sx={{ width: 40, height: 40, bgcolor: 'primary.main', fontSize: 14, fontWeight: 700, flexShrink: 0 }}
+      >
+        {initials(patient.firstName, patient.lastName)}
+      </Avatar>
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography sx={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e' }}>
           {patient.firstName} {patient.lastName}
@@ -43,11 +47,7 @@ export const PatientListItem: React.FC<PatientListItemProps> = ({ patient }) => 
           {patient.gender ? ` • ${genderLabel(patient.gender)}` : ''}
         </Typography>
       </Box>
-      <Avatar
-        sx={{ width: 40, height: 40, bgcolor: 'primary.main', fontSize: 14, fontWeight: 700, flexShrink: 0 }}
-      >
-        {initials(patient.firstName, patient.lastName)}
-      </Avatar>
+      <ChevronLeftIcon sx={{ color: '#ced4da', flexShrink: 0 }} />
     </Paper>
   </ClickableCard>
 );

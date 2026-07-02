@@ -32,7 +32,7 @@ const VisitPage: React.FC = () => {
 
       {patientInfo && <PatientInfoBar info={patientInfo} />}
 
-      <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, flex: 1, overflow: { xs: 'auto', md: 'hidden' } }}>
         <FormColumn>
           <VisitFormCard form={form} />
 

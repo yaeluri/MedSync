@@ -3,7 +3,7 @@ import { styled } from '@mui/material/styles';
 
 export const PageRoot = styled(Box)({
   display: 'flex', flexDirection: 'column', flex: 1,
-  overflow: 'hidden', background: '#f8f9fa', direction: 'rtl',
+  overflow: 'hidden', background: '#f8f9fa',
 });
 
 export const PatientInfoBarRoot = styled(Box)({
@@ -22,10 +22,15 @@ export const FormCard = styled(Paper)({
   border: '1px solid #e9ecef', boxShadow: 'none',
 });
 
-export const AiPanel = styled(Box)({
-  width: '25%', minWidth: 220, flexShrink: 0,
-  borderRight: '1px solid #e9ecef', background: '#fff', display: 'flex', flexDirection: 'column',
-});
+export const AiPanel = styled(Box)(({ theme }) => ({
+  width: '100%', flexShrink: 0,
+  borderTop: '1px solid #e9ecef', background: '#fff', display: 'flex', flexDirection: 'column',
+  [theme.breakpoints.up('md')]: {
+    width: '25%', minWidth: 220,
+    borderTop: 'none',
+    borderInlineStart: '1px solid #e9ecef',
+  },
+}));
 
 export const SummarySectionCard = styled(Box)({
   background: '#fff', border: '1px solid #e9ecef', borderRadius: 10,

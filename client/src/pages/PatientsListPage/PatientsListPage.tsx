@@ -12,7 +12,7 @@ export const PatientsListPage: React.FC = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
       <PageHeader title="רשימת מטופלים" subtitle="בחר מטופל להתחלת הטיפול" />
 
-      <Box sx={{ flex: 1, overflow: 'auto', bgcolor: '#f8f9fa', p: 3 }}>
+      <Box sx={{ flex: 1, overflow: 'auto', bgcolor: '#f8f9fa', p: { xs: 2, sm: 3 } }}>
         <Box sx={{ maxWidth: 720, mx: 'auto' }}>
           <TextField
             fullWidth
