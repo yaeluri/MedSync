@@ -17,23 +17,23 @@ export const PatientListItem: React.FC<PatientListItemProps> = ({ patient }) => 
       sx={{
         display: 'flex',
         alignItems: 'center',
-        gap: 2,
-        px: 2,
-        py: 1.5,
-        border: '1px solid #e9ecef',
+        gap: 1.75,
+        px: { xs: 1.75, sm: 2 },
+        py: { xs: 1.4, sm: 1.6 },
+        border: '1px solid #dfe3ea',
         borderRadius: 2,
         bgcolor: '#fff',
-        '&:hover': { borderColor: '#adb5bd', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
+        '&:hover': { borderColor: '#3b5bdb', boxShadow: '0 4px 14px rgba(59,91,219,0.12)' },
         transition: 'all 0.15s ease',
       }}
     >
       <Avatar
-        sx={{ width: 40, height: 40, bgcolor: 'primary.main', fontSize: 14, fontWeight: 700, flexShrink: 0 }}
+        sx={{ width: 42, height: 42, borderRadius: '12px', bgcolor: 'primary.main', fontSize: 14, fontWeight: 700, flexShrink: 0 }}
       >
         {initials(patient.firstName, patient.lastName)}
       </Avatar>
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e' }}>
+        <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#1a1a2e' }}>
           {patient.firstName} {patient.lastName}
         </Typography>
         <Typography sx={{ fontSize: 13, color: '#868e96' }}>
@@ -42,7 +42,7 @@ export const PatientListItem: React.FC<PatientListItemProps> = ({ patient }) => 
           {patient.gender ? ` • ${getGenderLabel(patient.gender)}` : ''}
         </Typography>
       </Box>
-      <ChevronLeftIcon sx={{ color: '#ced4da', flexShrink: 0 }} />
+      <ChevronLeftIcon sx={{ color: '#c7cfdb', flexShrink: 0, fontSize: 20 }} />
     </Paper>
   </ClickableCard>
 );
